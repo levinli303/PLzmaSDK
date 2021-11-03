@@ -76,10 +76,12 @@ namespace plzma {
     }
     
     STDMETHODIMP ExtractCallback::CryptoGetTextPassword(BSTR * password) {
+        _passwordRequested = true;
         return getTextPassword(nullptr, password);
     }
     
     STDMETHODIMP ExtractCallback::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) {
+        _passwordRequested = true;
         return getTextPassword(passwordIsDefined, password);
     }
     
@@ -265,7 +267,11 @@ namespace plzma {
                     case NOperationResult::kOK:
                         return S_OK;
                     default:
-                        _exception = Exception::create(plzma_error_code_internal, "Item extracted with error.", __FILE__, __LINE__);
+                        if (_passwordRequested) {
+                            _exception = Exception::create(plzma_error_code_password_needed, "Password is needed for this entry.", __FILE__, __LINE__);
+                        } else {
+                            _exception = Exception::create(plzma_error_code_internal, "Item extracted with error.", __FILE__, __LINE__);
+                        }
                         _result = E_FAIL;
                         break;
                 }
@@ -290,7 +296,7 @@ namespace plzma {
     
     void ExtractCallback::process() {
         LIBPLZMA_UNIQUE_LOCK(lock, _mutex)
-        
+
         CMyComPtr<ExtractCallback> selfPtr(this);
         NWindows::NCOM::CPropVariant prop;
         if (_archive->GetArchiveProperty(kpidSolid, &prop) != S_OK) {
@@ -355,7 +361,7 @@ namespace plzma {
             LIBPLZMA_UNIQUE_LOCK_UNLOCK(lock)
             const HRESULT result = (indicesCount > 0) ? _archive->Extract(indicies, indicesCount, _mode, this) : S_OK;
             LIBPLZMA_UNIQUE_LOCK_LOCK(lock)
-            
+
             _extracting = false;
             if (_currentOutStream) {
                 _currentOutStream->close();

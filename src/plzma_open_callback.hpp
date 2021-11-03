@@ -56,6 +56,7 @@ namespace plzma {
         CMyComPtr<IInArchive> _archive;
         CMyComPtr<InStreamBase> _stream;
         plzma_size_t _itemsCount = 0;
+        bool _passwordRequested = false;
         
         SharedPtr<Item> initialItemAt(const plzma_size_t index);
         
