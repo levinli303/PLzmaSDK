@@ -206,7 +206,10 @@ typedef enum plzma_error_code {
     plzma_error_code_io                 = 3,
     
     /// @brief Any internal errors or exceptions.
-    plzma_error_code_internal           = 4
+    plzma_error_code_internal           = 4,
+
+    /// @brief Password input needed.
+    plzma_error_code_password_needed    = 5,
 } plzma_error_code;
 
 

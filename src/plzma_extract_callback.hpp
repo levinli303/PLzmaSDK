@@ -71,6 +71,7 @@ namespace plzma {
         bool _itemsFullPath = true;
         bool _solidArchive = false;
         bool _extracting = false;
+        bool _passwordRequested = false;
         
         void getTestStream(const UInt32 index, ISequentialOutStream ** outStream);
         void getExtractStream(const UInt32 index, ISequentialOutStream ** outStream);

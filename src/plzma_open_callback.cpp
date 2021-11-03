@@ -41,10 +41,12 @@ namespace plzma {
     }
     
     STDMETHODIMP OpenCallback::CryptoGetTextPassword(BSTR * password) {
+        _passwordRequested = true;
         return getTextPassword(nullptr, password);
     }
     
     STDMETHODIMP OpenCallback::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) {
+        _passwordRequested = true;
         return getTextPassword(passwordIsDefined, password);
     }
     
@@ -62,13 +64,17 @@ namespace plzma {
             result = _archive->GetNumberOfItems(&numItems);
         }
         LIBPLZMA_UNIQUE_LOCK_LOCK(lock)
-        
+
         if (result == S_OK && _result == S_OK) {
             _itemsCount = numItems;
             return true;
         } else if (result == E_ABORT || _result == E_ABORT) {
             _itemsCount = 0;
             return false; // aborted -> false without exception
+        }
+
+        if (_passwordRequested) {
+            throw Exception(plzma_error_code_password_needed, "Password is needed for thie archive.", __FILE__, __LINE__);
         }
         
         if (_exception) {
