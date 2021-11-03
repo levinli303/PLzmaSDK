@@ -224,9 +224,11 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/C/Alloc.h
   src/C/Bcj2.h
   src/C/Bra.h
+  src/C/BwtSort.h
   src/C/Compiler.h
   src/C/CpuArch.h
   src/C/Delta.h
+  src/C/HuffEnc.h
   src/C/LzFind.h
   src/C/LzFindMt.h
   src/C/LzHash.h
@@ -315,6 +317,10 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Compress/Bcj2Coder.h
   src/CPP/7zip/Compress/BcjCoder.h
   src/CPP/7zip/Compress/BranchMisc.h
+  src/CPP/7zip/Compress/BZip2Const.h
+  src/CPP/7zip/Compress/BZip2Crc.h
+  src/CPP/7zip/Compress/BZip2Decoder.h
+  src/CPP/7zip/Compress/BZip2Encoder.h
   src/CPP/7zip/Compress/CopyCoder.h
   src/CPP/7zip/Compress/Lzma2Decoder.h
   src/CPP/7zip/Compress/Lzma2Encoder.h
@@ -393,8 +399,10 @@ set(LIBPLZMA_SOURCES
   src/C/Bra.c
   src/C/Bra86.c
   src/C/BraIA64.c
+  src/C/BwtSort.c
   src/C/CpuArch.c
   src/C/Delta.c
+  src/C/HuffEnc.c
   src/C/LzFind.c
   src/C/LzFindMt.c
   src/C/LzFindOpt.c
@@ -409,6 +417,7 @@ set(LIBPLZMA_SOURCES
   src/C/Ppmd7Enc.c
   src/C/Sha256.c
   src/C/Sha256Opt.c
+  src/C/Sort.c
   src/C/Threads.c
   src/C/Xz.c
   src/C/XzCrc64.c
@@ -482,6 +491,10 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/BranchMisc.cpp
   src/CPP/7zip/Compress/BranchRegister.cpp
   src/CPP/7zip/Compress/ByteSwap.cpp
+  src/CPP/7zip/Compress/BZip2Crc.cpp
+  src/CPP/7zip/Compress/BZip2Decoder.cpp
+  src/CPP/7zip/Compress/BZip2Encoder.cpp
+  src/CPP/7zip/Compress/BZip2Register.cpp
   src/CPP/7zip/Compress/CodecExports.cpp
   src/CPP/7zip/Compress/CopyCoder.cpp
   src/CPP/7zip/Compress/CopyRegister.cpp
@@ -620,11 +633,15 @@ source_group("C"
   src/C/Bra.h
   src/C/Bra86.c
   src/C/BraIA64.c
+  src/C/BwtSort.h
+  src/C/BwtSort.c
   src/C/Compiler.h
   src/C/CpuArch.c
   src/C/CpuArch.h
   src/C/Delta.c
   src/C/Delta.h
+  src/C/HuffEnc.h
+  src/C/HuffEnc.c
   src/C/LzFind.c
   src/C/LzFind.h
   src/C/LzFindMt.c
@@ -657,6 +674,7 @@ source_group("C"
   src/C/Sha256.h
   src/C/Sha256Opt.c
   src/C/Sort.h
+  src/C/Sort.c
   src/C/Threads.c
   src/C/Threads.h
   src/C/Xz.c
@@ -894,6 +912,14 @@ source_group("CPP/7zip/Compress"
   src/CPP/7zip/Compress/BranchMisc.h
   src/CPP/7zip/Compress/BranchRegister.cpp
   src/CPP/7zip/Compress/ByteSwap.cpp
+  src/CPP/7zip/Compress/BZip2Const.h
+  src/CPP/7zip/Compress/BZip2Crc.h
+  src/CPP/7zip/Compress/BZip2Decoder.h
+  src/CPP/7zip/Compress/BZip2Encoder.h
+  src/CPP/7zip/Compress/BZip2Crc.cpp
+  src/CPP/7zip/Compress/BZip2Decoder.cpp
+  src/CPP/7zip/Compress/BZip2Encoder.cpp
+  src/CPP/7zip/Compress/BZip2Register.cpp
   src/CPP/7zip/Compress/CodecExports.cpp
   src/CPP/7zip/Compress/CopyCoder.cpp
   src/CPP/7zip/Compress/CopyCoder.h
