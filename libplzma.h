@@ -150,7 +150,7 @@ typedef enum plzma_file_type {
     ///
     /// This file type supports multiple archive items, password protected items list of the arhive and
     /// password protected content.
-    /// @note Supports \b LZMA, \b LZMA2 and \b PPMd compression methods.
+    /// @note Supports \b LZMA, \b LZMA2, \b PPMd and \b BZip2 compression methods.
     /// @link https://www.7-zip.org/7z.html
     plzma_file_type_7z          = 1,
     
@@ -182,7 +182,8 @@ typedef enum plzma_method {
     
     /// @brief Dmitry Shkarin's PPMdH with small changes.
     /// @link https://www.7-zip.org/7z.html
-    plzma_method_PPMd =     3
+    plzma_method_PPMd =     3,
+    plzma_method_BZip2 =     4
 } plzma_method;
 
 

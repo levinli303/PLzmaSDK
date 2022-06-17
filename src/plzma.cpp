@@ -458,6 +458,7 @@ plzma_size_t kDecoderWriteSize = static_cast<unsigned int>(1) << 22;
 #if !defined(LIBPLZMA_NO_TAR)
             r |= plzma_registrator_17();
 #endif
+            r |= plzma_registrator_18();
             if (r > 0) {
                 notInitalized = false;
             } else {

@@ -478,6 +478,7 @@ namespace plzma {
             case plzma_method_LZMA:     values[0] = L"LZMA";  break;
             case plzma_method_LZMA2:    values[0] = L"LZMA2"; break;
             case plzma_method_PPMd:     values[0] = L"PPMD";  break;
+            case plzma_method_BZip2:    values[0] = L"BZip2"; break;
             default: break;
         }
         

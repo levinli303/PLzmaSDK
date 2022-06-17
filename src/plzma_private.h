@@ -165,6 +165,7 @@ LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_16(void);
 #if !defined(LIBPLZMA_NO_TAR)
 LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_17(void);
 #endif
+LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_18(void);
 #endif // !LIBPLZMA_USING_REGISTRATORS
 
 #if 0
