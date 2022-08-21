@@ -29,6 +29,7 @@
 #define __PLZMA_OPEN_CALLBACK_HPP__ 1
 
 #include <cstddef>
+#include <tuple>
 
 #include "../libplzma.hpp"
 #include "plzma_private.hpp"
@@ -45,6 +46,11 @@
 #include "CPP/7zip/IPassword.h"
 
 namespace plzma {
+    enum class OpenResult {
+        Ok,
+        Cancelled,
+        IncorrectCodec,
+    };
 
     class OpenCallback final :
         public IArchiveOpenCallback,
@@ -53,8 +59,9 @@ namespace plzma {
         public BaseCallback,
         public CMyUnknownImp {
     private:
-        CMyComPtr<IInArchive> _archive;
-        CMyComPtr<InStreamBase> _stream;
+        CMyComPtr<IInStream> _initialStream;
+        CObjectVector<CMyComPtr<IInArchive>> _openedArchives; 
+        CObjectVector<CMyComPtr<IInStream>> _openedStreams; 
         plzma_size_t _itemsCount = 0;
         bool _passwordRequested = false;
         
@@ -77,15 +84,17 @@ namespace plzma {
         
         CMyComPtr<IInArchive> archive() const noexcept;
         bool open();
+        std::tuple<OpenResult, UInt32> open(CMyComPtr<IInStream> stream);
+        std::tuple<OpenResult, UInt32> open(CMyComPtr<IInStream> stream, const GUID & codecGuid);
         void abort();
         plzma_size_t itemsCount() noexcept;
         SharedPtr<Item> itemAt(const plzma_size_t index);
         SharedPtr<ItemArray> allItems();
         OpenCallback(const CMyComPtr<InStreamBase> & stream,
 #if !defined(LIBPLZMA_NO_CRYPTO)
-                     const String & passwd,
+                     const String & passwd
 #endif
-                     const plzma_file_type type);
+        );
         virtual ~OpenCallback() { }
     };
     

@@ -67,7 +67,6 @@ namespace plzma {
         UInt32 _extractingFirstIndex = 0;
         UInt32 _extractingLastIndex = 0;
         Int32 _mode = 0; // The value of the 'NArchive::NExtract::NAskMode' anonymous enum.
-        plzma_file_type _type = plzma_file_type_7z;
         bool _itemsFullPath = true;
         bool _solidArchive = false;
         bool _extracting = false;
@@ -102,12 +101,15 @@ namespace plzma {
         void abort();
         ExtractCallback(const CMyComPtr<IInArchive> & archive,
 #if !defined(LIBPLZMA_NO_CRYPTO)
-                        const String & passwd,
+                        const String & passwd
+#if !defined(LIBPLZMA_NO_PROGRESS)
+                        ,
+#endif
 #endif
 #if !defined(LIBPLZMA_NO_PROGRESS)
-                        const SharedPtr<Progress> & progress,
+                        const SharedPtr<Progress> & progress
 #endif
-                        const plzma_file_type type);
+        );
         virtual ~ExtractCallback() { }
     };
     

@@ -1231,11 +1231,9 @@ LIBPLZMA_C_API(void) plzma_item_out_stream_array_release(plzma_item_out_stream_a
 /// @param stream The input stream which contains the archive file content.
 ///               After the successful decoder creation, the input file stream is retained.
 ///               After successful opening, the input stream will be opened as long as the decoder exists.
-/// @param type The type of the arhive file content.
 /// @param context The user provided context.
 /// @note Use \a plzma_decoder_release to release the decoder.
 LIBPLZMA_C_API(plzma_decoder) plzma_decoder_create(plzma_in_stream * LIBPLZMA_NONNULL stream,
-                                                   const plzma_file_type type,
                                                    const plzma_context context);
 
 /// @brief Provides the extract or test progress delegate callback.

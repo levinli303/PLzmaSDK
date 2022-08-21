@@ -30,6 +30,8 @@
 #include "plzma_open_callback.hpp"
 #include "plzma_common.hpp"
 
+#include "CPP/7zip/Archive/DllExports2.h"
+
 namespace plzma {
     
     STDMETHODIMP OpenCallback::SetTotal(const UInt64 * files, const UInt64 * bytes) {
@@ -55,40 +57,122 @@ namespace plzma {
         if (_result != S_OK) {
             return false;
         }
-        CMyComPtr<OpenCallback> selfPtr(this);
         
         LIBPLZMA_UNIQUE_LOCK_UNLOCK(lock)
-        HRESULT result = _archive->Open(_stream, nullptr, this);
-        UInt32 numItems = 0;
-        if (result == S_OK) {
-            result = _archive->GetNumberOfItems(&numItems);
-        }
+        auto results = open(_initialStream);
+        OpenResult result = std::get<0>(results);
         LIBPLZMA_UNIQUE_LOCK_LOCK(lock)
 
-        if (result == S_OK && _result == S_OK) {
-            _itemsCount = numItems;
-            return true;
-        } else if (result == E_ABORT || _result == E_ABORT) {
-            _itemsCount = 0;
-            return false; // aborted -> false without exception
+        switch (result) {
+            case OpenResult::Ok:
+                _itemsCount =  std::get<1>(results);
+                return true;
+            case OpenResult::Cancelled:
+                _itemsCount = 0;
+                return false;
+            case OpenResult::IncorrectCodec:
+            default:
+                Exception internalException(plzma_error_code_internal, "Can't open in archive.", __FILE__, __LINE__);
+#if defined(LIBPLZMA_NO_CRYPTO)
+                internalException.setReason("no crypto", nullptr);
+#endif
+                throw internalException;
+        }
+    }
+
+    std::tuple<OpenResult, UInt32> OpenCallback::open(CMyComPtr<IInStream> stream) {
+        auto supportedCodecs = getSortedSupportedCodecUUIDs();
+        for (int i = 0; i < supportedCodecs.Size(); i++) {
+            auto result = open(stream, supportedCodecs[i]);
+            switch (std::get<0>(result)) {
+                case OpenResult::Ok:
+                    return std::make_tuple(OpenResult::Ok, std::get<1>(result));
+                case OpenResult::Cancelled:
+                    return std::make_tuple(OpenResult::Cancelled, 0);
+                case OpenResult::IncorrectCodec:
+                default:
+                    continue;
+            }
+        }
+        return std::make_tuple(OpenResult::IncorrectCodec, 0);
+    }
+
+    std::tuple<OpenResult, UInt32> OpenCallback::open(CMyComPtr<IInStream> stream, const GUID & codecGuid) {
+        IInArchive * ptr = nullptr;
+        if (CreateObject(&codecGuid, &IID_IInArchive, reinterpret_cast<void**>(&ptr)) != S_OK || !ptr) {
+            return std::make_tuple(OpenResult::IncorrectCodec, 0);
         }
 
-        if (_passwordRequested) {
+        CMyComPtr<IInArchive> archive;
+        archive.Attach(ptr);
+
+        HRESULT thisResult = archive->Open(stream, nullptr, this);
+        if (thisResult == S_OK && _result == S_OK) {
+            // OK, proceed
+        } else if (thisResult == E_ABORT || _result == E_ABORT) {
+            _itemsCount = 0;
+            return std::make_tuple(OpenResult::Cancelled, 0); // aborted -> false without exception
+        } else if (_passwordRequested) {
             throw Exception(plzma_error_code_password_needed, "Password is needed for thie archive.", __FILE__, __LINE__);
-        }
-        
-        if (_exception) {
+        } else if (_exception) {
             Exception localException(static_cast<Exception &&>(*_exception));
             delete _exception;
             _exception = nullptr;
             throw localException;
+        } else {
+            // seek to zero to allow another round of detection
+            if (stream->Seek(0, STREAM_SEEK_SET, nullptr) != S_OK)
+            {
+                Exception internalException(plzma_error_code_internal, "Failed to seek to the start of the file", __FILE__, __LINE__);
+                throw internalException;
+            }
+            return std::make_tuple(OpenResult::IncorrectCodec, 0);
         }
-        
-        Exception internalException(plzma_error_code_internal, "Can't open in archive.", __FILE__, __LINE__);
-#if defined(LIBPLZMA_NO_CRYPTO)
-        internalException.setReason("no crypto", nullptr);
-#endif
-        throw internalException;
+
+        UInt32 numItems = 0;
+        archive->GetNumberOfItems(&numItems);
+
+        // save
+        _openedArchives.Add(archive);
+        _openedStreams.Add(stream);
+
+        // Get sub stream if needed
+        NWindows::NCOM::CPropVariant prop;
+        if (archive->GetArchiveProperty(kpidMainSubfile, &prop) != S_OK || prop.ulVal >= numItems) {
+            // No sub stream
+            return std::make_tuple(OpenResult::Ok, numItems);
+        }
+
+        UInt32 mainSubfile = prop.ulVal;
+        CMyComPtr<IInArchiveGetStream> getStream;
+        if (archive->QueryInterface(IID_IInArchiveGetStream, (void **)&getStream) != S_OK || !getStream) {
+            // cannot fetch get stream method
+            return std::make_tuple(OpenResult::Ok, numItems);
+        }
+
+        CMyComPtr<ISequentialInStream> subSeqStream;
+        if (getStream->GetStream(mainSubfile, &subSeqStream) != S_OK || !subSeqStream) {
+            // failed to get stream
+            return std::make_tuple(OpenResult::Ok, numItems);
+        }        
+
+        CMyComPtr<IInStream> subStream;
+        if (subSeqStream.QueryInterface(IID_IInStream, &subStream) != S_OK || !subStream) {
+            // is not an IINStream
+            return std::make_tuple(OpenResult::Ok, numItems);
+        }
+
+        auto newResults = open(subStream);
+        auto newResult = std::get<0>(newResults);
+        switch (newResult) {
+            case OpenResult::Ok:
+                return std::make_tuple(OpenResult::Ok, std::get<1>(newResults));
+            case OpenResult::Cancelled:
+                return std::make_tuple(OpenResult::Cancelled, 0);
+            case OpenResult::IncorrectCodec:
+            default:
+                return std::make_tuple(OpenResult::Ok, numItems);
+        }
     }
     
     void OpenCallback::abort() {
@@ -98,7 +182,7 @@ namespace plzma {
     }
     
     CMyComPtr<IInArchive> OpenCallback::archive() const noexcept {
-        return _archive;
+        return _openedArchives.Back();
     }
     
     plzma_size_t OpenCallback::itemsCount() noexcept {
@@ -106,11 +190,12 @@ namespace plzma {
     }
     
     SharedPtr<Item> OpenCallback::initialItemAt(const plzma_size_t index) {
+        auto archvie = _openedArchives.Back();
         if (index < _itemsCount) {
             NWindows::NCOM::CPropVariant path, size;
             SharedPtr<Item> item;
-            if (_archive->GetProperty(index, kpidPath, &path) == S_OK &&
-                _archive->GetProperty(index, kpidSize, &size) == S_OK &&
+            if (archvie->GetProperty(index, kpidPath, &path) == S_OK &&
+                archvie->GetProperty(index, kpidSize, &size) == S_OK &&
                 (path.vt == VT_EMPTY || path.vt == VT_BSTR)) {
                     item = makeShared<Item>(static_cast<Path &&>(Path(path.bstrVal)), index);
                     item->setSize(PROPVARIANTGetUInt64(size));
@@ -121,40 +206,41 @@ namespace plzma {
     }
     
     SharedPtr<Item> OpenCallback::itemAt(const plzma_size_t index) {
+        auto archvie = _openedArchives.Back();
         auto item = initialItemAt(index);
         if (item) {
             NWindows::NCOM::CPropVariant prop;
-            if (_archive->GetProperty(index, kpidPackSize, &prop) == S_OK) {
+            if (archvie->GetProperty(index, kpidPackSize, &prop) == S_OK) {
                 item->setPackSize(PROPVARIANTGetUInt64(prop));
             }
             
             prop.Clear();
-            if (_archive->GetProperty(index, kpidCTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
+            if (archvie->GetProperty(index, kpidCTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
                 item->setCreationTime(FILETIMEToUnixTime(prop.filetime));
             }
             
             prop.Clear();
-            if (_archive->GetProperty(index, kpidATime, &prop) == S_OK && prop.vt == VT_FILETIME) {
+            if (archvie->GetProperty(index, kpidATime, &prop) == S_OK && prop.vt == VT_FILETIME) {
                 item->setAccessTime(FILETIMEToUnixTime(prop.filetime));
             }
             
             prop.Clear();
-            if (_archive->GetProperty(index, kpidMTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
+            if (archvie->GetProperty(index, kpidMTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
                 item->setModificationTime(FILETIMEToUnixTime(prop.filetime));
             }
             
             prop.Clear();
-            if (_archive->GetProperty(index, kpidEncrypted, &prop) == S_OK) {
+            if (archvie->GetProperty(index, kpidEncrypted, &prop) == S_OK) {
                 item->setEncrypted(PROPVARIANTGetBool(prop));
             }
             
             prop.Clear();
-            if (_archive->GetProperty(index, kpidCRC, &prop) == S_OK) {
+            if (archvie->GetProperty(index, kpidCRC, &prop) == S_OK) {
                 item->setCrc32(static_cast<uint32_t>(PROPVARIANTGetUInt64(prop)));
             }
             
             prop.Clear();
-            if (_archive->GetProperty(index, kpidIsDir, &prop) == S_OK) {
+            if (archvie->GetProperty(index, kpidIsDir, &prop) == S_OK) {
                 item->setIsDir(PROPVARIANTGetBool(prop));
             }
         }
@@ -171,11 +257,10 @@ namespace plzma {
     
     OpenCallback::OpenCallback(const CMyComPtr<InStreamBase> & stream,
 #if !defined(LIBPLZMA_NO_CRYPTO)
-                               const String & passwd,
+                               const String & passwd
 #endif
-                               const plzma_file_type type) : CMyUnknownImp(),
-        _archive(createArchive<IInArchive>(type)),
-        _stream(stream) {
+    ) : CMyUnknownImp(),
+        _initialStream(stream) {
 #if !defined(LIBPLZMA_NO_CRYPTO)
             _password = passwd;
 #endif

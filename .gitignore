@@ -37,3 +37,4 @@ package-lock.json
 *.out
 *.app
 
+.DS_Store

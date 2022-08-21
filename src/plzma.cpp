@@ -459,6 +459,25 @@ plzma_size_t kDecoderWriteSize = static_cast<unsigned int>(1) << 22;
             r |= plzma_registrator_17();
 #endif
             r |= plzma_registrator_18();
+            r |= plzma_registrator_19();
+            r |= plzma_registrator_20();
+            r |= plzma_registrator_21();
+            r |= plzma_registrator_22();
+            r |= plzma_registrator_23();
+            r |= plzma_registrator_24();
+            r |= plzma_registrator_25();
+            r |= plzma_registrator_26();
+            r |= plzma_registrator_27();
+            r |= plzma_registrator_28();
+            r |= plzma_registrator_29();
+            r |= plzma_registrator_30();
+            r |= plzma_registrator_31();
+            r |= plzma_registrator_32();
+            r |= plzma_registrator_33();
+            r |= plzma_registrator_34();
+            r |= plzma_registrator_35();
+            r |= plzma_registrator_36();
+            r |= plzma_registrator_37();
             if (r > 0) {
                 notInitalized = false;
             } else {

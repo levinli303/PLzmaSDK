@@ -1356,11 +1356,9 @@ namespace plzma {
     ///
     /// @param stream The input stream which contains the archive file content.
     ///               After successful opening, the input stream will be opened as long as the decoder exists.
-    /// @param type The type of the arhive file content.
     /// @param context The user provided context.
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if provided stream is empty.
     LIBPLZMA_CPP_API(SharedPtr<Decoder>) makeSharedDecoder(const SharedPtr<InStream> & stream,
-                                                           const plzma_file_type type,
                                                            const plzma_context context = plzma_context{nullptr, nullptr}); // C2059 = { .context = nullptr, .deinitializer = nullptr }
     
     

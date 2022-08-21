@@ -316,21 +316,27 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Common/VirtThread.h
   src/CPP/7zip/Compress/Bcj2Coder.h
   src/CPP/7zip/Compress/BcjCoder.h
+  src/CPP/7zip/Compress/BitlDecoder.h
   src/CPP/7zip/Compress/BranchMisc.h
   src/CPP/7zip/Compress/BZip2Const.h
   src/CPP/7zip/Compress/BZip2Crc.h
   src/CPP/7zip/Compress/BZip2Decoder.h
   src/CPP/7zip/Compress/BZip2Encoder.h
   src/CPP/7zip/Compress/CopyCoder.h
+  src/CPP/7zip/Compress/DeflateConst.h
+  src/CPP/7zip/Compress/DeflateDecoder.h
+  src/CPP/7zip/Compress/LzfseDecoder.h
   src/CPP/7zip/Compress/Lzma2Decoder.h
   src/CPP/7zip/Compress/Lzma2Encoder.h
   src/CPP/7zip/Compress/LzmaDecoder.h
   src/CPP/7zip/Compress/LzmaEncoder.h
+  src/CPP/7zip/Compress/LzOutWindow.h
   src/CPP/7zip/Compress/PpmdDecoder.h
   src/CPP/7zip/Compress/PpmdEncoder.h
   src/CPP/7zip/Compress/StdAfx.h
   src/CPP/7zip/Compress/XzDecoder.h
   src/CPP/7zip/Compress/XzEncoder.h
+  src/CPP/7zip/Compress/ZlibDecoder.h
   src/CPP/7zip/Crypto/7zAes.h
   src/CPP/7zip/Crypto/MyAes.h
   src/CPP/7zip/Crypto/RandGen.h
@@ -362,6 +368,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/MyUnknown.h
   src/CPP/Common/MyVector.h
   src/CPP/Common/MyWindows.h
+  src/CPP/Common/MyXml.h
   src/CPP/Common/StdAfx.h
   src/CPP/Common/StdInStream.h
   src/CPP/Common/StdOutStream.h
@@ -464,7 +471,10 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/Common/ItemNameUtils.cpp
   src/CPP/7zip/Archive/Common/MultiStream.cpp
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.cpp
+  src/CPP/7zip/Archive/Base64Handler.cpp
   src/CPP/7zip/Archive/DllExports2.cpp
+  src/CPP/7zip/Archive/DmgHandler.cpp
+  src/CPP/7zip/Archive/HfsHandler.cpp
   src/CPP/7zip/Archive/LzmaHandler.cpp
   src/CPP/7zip/Archive/SplitHandler.cpp
   src/CPP/7zip/Archive/XzHandler.cpp
@@ -488,6 +498,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/Bcj2Register.cpp
   src/CPP/7zip/Compress/BcjCoder.cpp
   src/CPP/7zip/Compress/BcjRegister.cpp
+  src/CPP/7zip/Compress/BitlDecoder.cpp
   src/CPP/7zip/Compress/BranchMisc.cpp
   src/CPP/7zip/Compress/BranchRegister.cpp
   src/CPP/7zip/Compress/ByteSwap.cpp
@@ -498,18 +509,22 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/CodecExports.cpp
   src/CPP/7zip/Compress/CopyCoder.cpp
   src/CPP/7zip/Compress/CopyRegister.cpp
+  src/CPP/7zip/Compress/DeflateDecoder.cpp
   src/CPP/7zip/Compress/DeltaFilter.cpp
+  src/CPP/7zip/Compress/LzfseDecoder.cpp
   src/CPP/7zip/Compress/Lzma2Decoder.cpp
   src/CPP/7zip/Compress/Lzma2Encoder.cpp
   src/CPP/7zip/Compress/Lzma2Register.cpp
   src/CPP/7zip/Compress/LzmaDecoder.cpp
   src/CPP/7zip/Compress/LzmaEncoder.cpp
   src/CPP/7zip/Compress/LzmaRegister.cpp
+  src/CPP/7zip/Compress/LzOutWindow.cpp
   src/CPP/7zip/Compress/PpmdDecoder.cpp
   src/CPP/7zip/Compress/PpmdEncoder.cpp
   src/CPP/7zip/Compress/PpmdRegister.cpp
   src/CPP/7zip/Compress/XzDecoder.cpp
   src/CPP/7zip/Compress/XzEncoder.cpp
+  src/CPP/7zip/Compress/ZlibDecoder.cpp
   src/CPP/7zip/Crypto/7zAes.cpp
   src/CPP/7zip/Crypto/7zAesRegister.cpp
   src/CPP/7zip/Crypto/MyAes.cpp
@@ -521,6 +536,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/Common/IntToString.cpp
   src/CPP/Common/MyString.cpp
   src/CPP/Common/MyWindows.cpp
+  src/CPP/Common/MyXml.cpp
   src/CPP/Common/Sha256Reg.cpp
   src/CPP/Common/StringConvert.cpp
   src/CPP/Common/StringToInt.cpp

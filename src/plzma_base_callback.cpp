@@ -139,7 +139,117 @@ namespace plzma {
         return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xEE, 0x00, 0x00);
     }
 #endif
-    
+
+    static GUID CLSIDTypeDmg(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE4, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeHfs(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE3, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeApfs(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC3, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeNtfs(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD9, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeFat(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xDA, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypePe(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCF, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeQcow(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCA, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeVhd(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xDC, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeVhdx(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC4, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeVmdk(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC8, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeGpt(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCB, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeMbr(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xDB, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeExt(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC7, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeBase64(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC5, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeLzh(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x06, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeMacho(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xDF, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeUdf(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE0, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeWim(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE6, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeIso(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE7, 0x00, 0x00);
+    }
+
+    CObjectVector<GUID> sortedSupportedCodecUUIDs;
+
+    CObjectVector<GUID> BaseCallback::getSortedSupportedCodecUUIDs() const noexcept
+    {
+        if (sortedSupportedCodecUUIDs.IsEmpty())
+        {
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeMbr());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeBase64());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypePe());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeGpt());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeMacho());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeLzh());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeExt());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeFat());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeUdf());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeVhd());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeApfs());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeDmg());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeVhdx());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeVmdk());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeHfs());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeIso());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeQcow());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeNtfs());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeWim());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeXz());
+#if !defined(LIBPLZMA_NO_TAR)
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeTar());
+#endif
+            sortedSupportedCodecUUIDs.Add(CLSIDType7z());
+        }
+        return sortedSupportedCodecUUIDs;
+    }
+
     template<typename T>
     inline CMyComPtr<T> createArchiveWithGUID(const GUID * archiveGUID, const plzma_file_type type) {
         HRESULT res = S_FALSE;

@@ -61,6 +61,8 @@ namespace plzma {
         HRESULT setProgressTotal(const uint64_t total) noexcept;
         HRESULT setProgressCompleted(const uint64_t completed) noexcept;
 #endif
+
+        CObjectVector<GUID> getSortedSupportedCodecUUIDs() const noexcept;
         
         LIBPLZMA_NON_COPYABLE_NON_MOVABLE(BaseCallback)
         
