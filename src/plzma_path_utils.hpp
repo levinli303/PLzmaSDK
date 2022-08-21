@@ -45,8 +45,24 @@
 #include <direct.h>
 #include <windows.h>
 
+#if !defined(S_IFDIR)
+#define S_IFDIR         0040000         /* [XSI] directory */
+#endif
+
 #if !defined(S_ISDIR)
 #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
+#if !defined(S_IFREG)
+#define S_IFREG         0100000         /* [XSI] regular */
+#endif
+
+#if !defined(S_IFLNK)
+#define S_IFLNK         0120000         /* [XSI] symbolic link */
+#endif
+
+#if !defined(S_ISLNK)
+#define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
 #endif
 
 #elif defined(LIBPLZMA_POSIX)
@@ -127,18 +143,21 @@ namespace pathUtils {
     }
     
     template<typename T>
-    plzma_path_stat pathStat(const T * LIBPLZMA_NULLABLE path) noexcept;
+    Stat pathStat(const T * LIBPLZMA_NULLABLE path) noexcept;
     
     template<>
-    inline plzma_path_stat pathStat(const wchar_t * LIBPLZMA_NULLABLE path) noexcept {
-        plzma_path_stat t{0, 0, 0, 0};
+    inline Stat pathStat(const wchar_t * LIBPLZMA_NULLABLE path) noexcept {
+        Stat t;
 #if defined(LIBPLZMA_MSC)
         struct __stat64 statbuf;
         if (path && _wstat64(path, &statbuf) == 0) {
-            t.creation = statbuf.st_ctime;
-            t.last_access = statbuf.st_atime;
-            t.last_modification = statbuf.st_mtime;
-            t.size = static_cast<uint64_t>(statbuf.st_size);
+            t.setCreation(statbuf.st_ctime);
+            t.setLastAccess(statbuf.st_atime);
+            t.setLastModification(statbuf.st_mtime);
+            auto mode = statbuf.st_mode;
+            t.setPermissions(mode & 0777);
+            t.setIsSymbolicLink(false);
+            t.setSize(static_cast<uint64_t>(statbuf.st_size));
         }
 #else
         assert(0);
@@ -147,22 +166,33 @@ namespace pathUtils {
     }
     
     template<>
-    inline plzma_path_stat pathStat(const char * LIBPLZMA_NULLABLE path) noexcept {
-        plzma_path_stat t{0, 0, 0, 0};
+    inline Stat pathStat(const char * LIBPLZMA_NULLABLE path) noexcept {
+        Stat t;
 #if defined(LIBPLZMA_MSC)
-        struct _stat statbuf;
-        if (path && _stat(path, &statbuf) == 0) {
-            t.creation = statbuf.st_ctime;
-            t.last_access = statbuf.st_atime;
-            t.last_modification = statbuf.st_mtime;
-        }
+        assert(0);
 #elif defined(LIBPLZMA_POSIX)
         struct stat statbuf;
         if (path && stat(path, &statbuf) == 0) {
-            t.creation = statbuf.st_ctime;
-            t.last_access = statbuf.st_atime;
-            t.last_modification = statbuf.st_mtime;
-            t.size = static_cast<uint64_t>(statbuf.st_size);
+            t.setCreation(statbuf.st_ctime);
+            t.setLastAccess(statbuf.st_atime);
+            t.setLastModification(statbuf.st_mtime);
+            auto mode = statbuf.st_mode;
+            t.setPermissions(mode & 0777);
+            bool isSymbolicLink = S_ISLNK(mode);
+            t.setIsSymbolicLink(isSymbolicLink);
+            if (isSymbolicLink) {
+                ssize_t targetNameBufSize = statbuf.st_size + 1;
+                if (statbuf.st_size == 0)
+                    targetNameBufSize = PATH_MAX;
+                char* buf = (char *)malloc(targetNameBufSize);
+                ssize_t written = readlink(path, buf, targetNameBufSize);
+                if (written != -1) {
+                    buf[written] = '\0';
+                    t.setSymbolicLink(buf);
+                }
+                free(buf);
+            }
+            t.setSize(static_cast<uint64_t>(statbuf.st_size));
         }
 #endif
         return t;

@@ -67,7 +67,6 @@ namespace plzma {
 #if !defined(LIBPLZMA_NO_PROGRESS)
         SharedPtr<Progress> _progress;
 #endif
-        plzma_file_type _type = plzma_file_type_7z;
         bool _opened = false;
         bool _opening = false;
         bool _aborted = false;
@@ -86,16 +85,16 @@ namespace plzma {
             
 #if defined(LIBPLZMA_NO_PROGRESS)
 #  if defined(LIBPLZMA_NO_CRYPTO)
-            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _type));
+            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive()));
 #  else
-            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _password, _type));
+            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _password));
 #  endif
 #else
             _progress->reset();
 #  if defined(LIBPLZMA_NO_CRYPTO)
-            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _progress, _type));
+            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _progress));
 #  else
-            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _password, _progress, _type));
+            CMyComPtr<ExtractCallback> extractCallback(new ExtractCallback(_openCallback->archive(), _password, _progress));
 #  endif
 #endif
             _extractCallback = extractCallback;
@@ -141,7 +140,6 @@ namespace plzma {
 #endif
         
         DecoderImpl(const CMyComPtr<InStreamBase> & stream,
-                    const plzma_file_type type,
                     const plzma_context context);
         virtual ~DecoderImpl();
     };

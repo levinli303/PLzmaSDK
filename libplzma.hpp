@@ -535,8 +535,9 @@ namespace plzma {
         /// @return The pair: <length, number of unicode characters>
         static Pair<size_t, size_t> lengthMaxLength(const char * LIBPLZMA_NULLABLE str, const size_t maxLength) noexcept;
     };
-    
-    
+
+    class Stat;
+
     /// @brief The \a Path class stores path's string presentation.
     ///
     /// During the manipulation of the path's string presentation:
@@ -602,11 +603,11 @@ namespace plzma {
         /// @brief Checks the path exists and has read-write permissions.
         /// @return \a true if path exists, readable and writable, otherwise \a false.
         bool readableAndWritable() const;
-        
-        
+
+
         /// @brief Provides the stat info of the path.
         /// @return The stat info of the path or empty/zero-filled struct if operation was failed.
-        plzma_path_stat stat() const;
+        Stat stat() const;
         
         
         /// @brief Physically removes the directory with all content or file associated with the path.
@@ -633,7 +634,9 @@ namespace plzma {
         /// @return The \a SharedPtr of the path iterator.
         /// @exception The \a Exception with \a plzma_error_code_io code in case if a directory can't be opened.
         SharedPtr<Iterator> openDir(const plzma_open_dir_mode_t mode = 0) const;
-        
+
+        bool setFilePermissions(const uint16_t permissions) const;
+        bool setTime(const time_t creationTime, const time_t accessTime, const time_t modificationTime) const;
         
         bool operator == (const Path & path) const;
         Path & operator = (Path && path) noexcept;
@@ -707,6 +710,7 @@ namespace plzma {
     private:
         friend struct SharedPtr<Item>;
         Path _path;
+        String _symbolicLink;
         uint64_t _size = 0;
         uint64_t _packSize = 0;
         time_t _creationTime = 0;
@@ -717,6 +721,9 @@ namespace plzma {
         plzma_size_t _referenceCounter = 0;
         bool _encrypted = false;
         bool _isDir = false;
+        uint16_t _permissions = 0;
+        bool _hasPermissions = false;
+        bool _isSymbolicLink = false;
         
         void retain() noexcept;
         void release() noexcept;
@@ -766,8 +773,24 @@ namespace plzma {
         
         /// @return Checks the item is directory or file.
         bool isDir() const noexcept;
-        
-        
+
+
+        /// @return Checks the posix attributes of the file.
+        bool hasPermissions() const noexcept;
+
+
+        /// @return Checks the permissions of the file.
+        uint16_t permissions() const noexcept;
+
+
+        /// @return Checks if the file is a symbolic link.
+        bool isSymbolicLink() const noexcept;
+
+
+        /// @return the path that this item is linekd to.
+        const String & symbolicLink() const noexcept;
+
+
         /// @brief Updates the size of the item.
         /// @param size The size in bytes.
         void setSize(const uint64_t size) noexcept;
@@ -805,7 +828,12 @@ namespace plzma {
         /// @brief Marks the item is directory.
         void setIsDir(const bool dir) noexcept;
         
-        
+        void setPermissions(const uint16_t permission) noexcept;
+
+        void setIsSymbolicLink(bool symbolicLink) noexcept;
+
+        void setSymbolicLink(const String & symbolicLink) noexcept;
+
         /// @brief Constructs the \a Item instance with path and index in the archive.
         /// @param path The associated item's path.
         /// @param index The index of the item in the archive.
@@ -820,6 +848,46 @@ namespace plzma {
     
     template struct LIBPLZMA_CPP_CLASS_API SharedPtr<Item>;
     template struct LIBPLZMA_CPP_CLASS_API Pair<void *, size_t>;
+
+    /// @brief The stat of a path.
+    class LIBPLZMA_CPP_CLASS_API Stat final {
+    private:
+        uint64_t _size = 0;
+        time_t _lastAccess = 0;
+        time_t _lastModification = 0;
+        time_t _creation = 0;
+        uint16_t _permissions = 0;
+        bool _hasPermissions = 0;
+        bool _isSymbolicLink = 0;
+        String _symbolicLink;
+
+    public:
+
+        uint64_t size() const noexcept;
+        time_t lastAccess() const noexcept;
+        time_t lastModification() const noexcept;
+        time_t creation() const noexcept;
+        bool hasPermissions() const noexcept;
+        uint16_t permissions() const noexcept;
+        bool isSymbolicLink() const noexcept;
+        const String & symbolicLink() const noexcept;
+
+        void setSize(const uint64_t size) noexcept;
+        void setLastAccess(const time_t time) noexcept;
+        void setLastModification(const time_t time) noexcept;
+        void setCreation(const time_t time) noexcept;
+        void setPermissions(const uint16_t permission) noexcept;
+        void setIsSymbolicLink(bool symbolicLink) noexcept;
+        void setSymbolicLink(const String & symbolicLink) noexcept;
+
+        /// @brief Create an empty stat
+        Stat() noexcept;
+
+        Stat & operator = (Stat && stat) noexcept;
+        Stat(Stat && stat) noexcept;
+        Stat & operator = (const Stat & stat);
+        Stat(const Stat & stat);
+    };
     
     /// @brief Interface to the input file stream.
     class InStream {
@@ -948,14 +1016,14 @@ namespace plzma {
     /// @param path The non-empty output file path.
     /// @return The output file stream.
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is empty.
-    LIBPLZMA_CPP_API(SharedPtr<OutStream>) makeSharedOutStream(const Path & path);
+    LIBPLZMA_CPP_API(SharedPtr<OutStream>) makeSharedOutStream(const Path & path, const Stat & stat);
     
     
     /// @brief Creates the output file stream object with movable path.
     /// @param path The non-empty output file path. After the successfull creation of the stream, the path is empty.
     /// @return The output file stream.
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is empty.
-    LIBPLZMA_CPP_API(SharedPtr<OutStream>) makeSharedOutStream(Path && path);
+    LIBPLZMA_CPP_API(SharedPtr<OutStream>) makeSharedOutStream(Path && path, Stat && stat);
     
     
     /// @brief Creates the output file stream object for writing to memory.
@@ -993,6 +1061,7 @@ namespace plzma {
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is empty.
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is not a directory or there are no write permissions.
     LIBPLZMA_CPP_API(SharedPtr<OutMultiStream>) makeSharedOutMultiStream(const Path & dirPath,
+                                                                         const Stat & itemStat,
                                                                          const String & partName,
                                                                          const String & partExtension,
                                                                          const plzma_plzma_multi_stream_part_name_format format,
@@ -1012,6 +1081,7 @@ namespace plzma {
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is empty.
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is not a directory or there are no write permissions.
     LIBPLZMA_CPP_API(SharedPtr<OutMultiStream>) makeSharedOutMultiStream(Path && dirPath,
+                                                                         Stat && itemStat,
                                                                          String && partName,
                                                                          String && partExtension,
                                                                          const plzma_plzma_multi_stream_part_name_format format,
@@ -1356,11 +1426,9 @@ namespace plzma {
     ///
     /// @param stream The input stream which contains the archive file content.
     ///               After successful opening, the input stream will be opened as long as the decoder exists.
-    /// @param type The type of the arhive file content.
     /// @param context The user provided context.
     /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if provided stream is empty.
     LIBPLZMA_CPP_API(SharedPtr<Decoder>) makeSharedDecoder(const SharedPtr<InStream> & stream,
-                                                           const plzma_file_type type,
                                                            const plzma_context context = plzma_context{nullptr, nullptr}); // C2059 = { .context = nullptr, .deinitializer = nullptr }
     
     
@@ -1551,6 +1619,17 @@ namespace plzma {
         /// @brief Set encoder will store the last modification time of each item to the archive header, if such available.
         /// @note Thread-safe. Must be set before opening.
         virtual void setShouldStoreModificationTime(const bool store) = 0;
+
+
+        /// @brief Should encoder store the permission attributes of each item to the archive header, if such available.
+        /// @note Enabled by default, the value is \a true.
+        /// @note Thread-safe.
+        virtual bool shouldStorePermissions() const = 0;
+
+
+        /// @brief Set encoder will store the permission attributes of each item to the archive header, if such available.
+        /// @note Thread-safe. Must be set before opening.
+        virtual void setShouldStorePermissions(const bool store) = 0;
     };
     
     

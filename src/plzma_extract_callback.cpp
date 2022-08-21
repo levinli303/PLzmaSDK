@@ -30,6 +30,7 @@
 #include "plzma_extract_callback.hpp"
 #include "plzma_common.hpp"
 #include "plzma_c_bindings_private.hpp"
+#include "plzma_archive_utils.hpp"
 
 #include "CPP/Common/Defs.h"
 #include "CPP/Windows/PropVariant.h"
@@ -93,10 +94,6 @@ namespace plzma {
             (pathProp.vt == VT_EMPTY || pathProp.vt == VT_BSTR)) {
                 itemPath.set(pathProp.bstrVal);
         }
-        
-        if (_type != plzma_file_type_xz && itemPath.count() == 0) {
-            throw Exception(plzma_error_code_internal, "Can't read item path.", __FILE__, __LINE__);
-        }
 #endif
         
         OutTestStream * stream = new OutTestStream();
@@ -133,57 +130,40 @@ namespace plzma {
             itemPath.set(prop.bstrVal);
         }
         
-        if (_type != plzma_file_type_xz) {
-            if (itemPath.count() == 0) {
-                throw Exception(plzma_error_code_internal, "Can't read item path.", __FILE__, __LINE__);
-            }
-            
-            prop.Clear();
-            if (_archive->GetProperty(index, kpidIsDir, &prop) != S_OK) {
-                throw Exception(plzma_error_code_internal, "Can't check item is directory.", __FILE__, __LINE__);
-            }
-            
-            if (PROPVARIANTGetBool(prop)) { // directory
-                if (_itemsFullPath) {
-                    fullPath.append(itemPath);
-                    if (!fullPath.createDir(true)) {
-                        Exception exception(plzma_error_code_io, nullptr, __FILE__, __LINE__);
-                        exception.setWhat("Can't create output directory at path: ", fullPath.utf8(), nullptr);
-                        throw exception;
-                    }
-                }
-                return;
-            }
-            
-            const auto itemName = itemPath.lastComponent();
+        if (itemPath.count() == 0) {
+            throw Exception(plzma_error_code_internal, "Can't read item path.", __FILE__, __LINE__);
+        }
+    
+        prop.Clear();
+        if (_archive->GetProperty(index, kpidIsDir, &prop) != S_OK) {
+            throw Exception(plzma_error_code_internal, "Can't check item is directory.", __FILE__, __LINE__);
+        }
+    
+        if (PROPVARIANTGetBool(prop)) { // directory
             if (_itemsFullPath) {
                 fullPath.append(itemPath);
-                fullPath.removeLastComponent();
                 if (!fullPath.createDir(true)) {
                     Exception exception(plzma_error_code_io, nullptr, __FILE__, __LINE__);
                     exception.setWhat("Can't create output directory at path: ", fullPath.utf8(), nullptr);
                     throw exception;
                 }
             }
-            fullPath.append(itemName);
-        } else {
-            bool isDir = true;
-            if (fullPath.exists(&isDir) && isDir) {
-                Exception exception(plzma_error_code_io, "Can't extract xz item to path.", __FILE__, __LINE__);
-                exception.setReason("The target path is directory. Path: ", fullPath.utf8(), nullptr);
-                throw exception;
-            }
-            itemPath = fullPath.lastComponent();
+            return;
+        }
+
+        const auto itemName = itemPath.lastComponent();
+        if (_itemsFullPath) {
+            fullPath.append(itemPath);
             fullPath.removeLastComponent();
             if (!fullPath.createDir(true)) {
                 Exception exception(plzma_error_code_io, nullptr, __FILE__, __LINE__);
                 exception.setWhat("Can't create output directory at path: ", fullPath.utf8(), nullptr);
                 throw exception;
             }
-            fullPath.append(itemPath);
         }
-        
-        OutFileStream * stream = new OutFileStream(static_cast<Path &&>(fullPath));
+        fullPath.append(itemName);
+
+        OutFileStream * stream = new OutFileStream(static_cast<Path &&>(fullPath), GetArchiveItemStat(_archive, index));
         _currentOutStream = stream;
 #if !defined(LIBPLZMA_NO_PROGRESS)
         _progress->setPath(static_cast<Path &&>(itemPath));
@@ -429,14 +409,16 @@ namespace plzma {
     
     ExtractCallback::ExtractCallback(const CMyComPtr<IInArchive> & archive,
 #if !defined(LIBPLZMA_NO_CRYPTO)
-                                     const String & passwd,
+                                     const String & passwd
+#if !defined(LIBPLZMA_NO_PROGRESS)
+                                    ,
+#endif
 #endif
 #if !defined(LIBPLZMA_NO_PROGRESS)
-                                     const SharedPtr<Progress> & progress,
+                                     const SharedPtr<Progress> & progress
 #endif
-                                     const plzma_file_type type) : CMyUnknownImp(),
-        _archive(archive),
-        _type(type) {
+    ) : CMyUnknownImp(),
+        _archive(archive) {
 #if !defined(LIBPLZMA_NO_CRYPTO)
             _password = passwd;
 #endif

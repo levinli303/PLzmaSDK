@@ -11,7 +11,7 @@
 #include "../../Common/StringToInt.h"
 
 #include "../../Windows/PropVariant.h"
-//#include "../../Windows/System.h"
+#include "../../Windows/System.h"
 
 #include "../Common/CWrappers.h"
 #include "../Common/ProgressUtils.h"

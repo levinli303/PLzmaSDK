@@ -245,6 +245,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/C/Ppmd7.h
   src/C/Precomp.h
   src/C/RotateDefs.h
+  src/C/Sha1.h
   src/C/Sha256.h
   src/C/Sort.h
   src/C/Threads.h
@@ -254,6 +255,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/plzma_base_callback.hpp
   src/plzma_c_bindings_private.hpp
   src/plzma_common.hpp
+  src/plzma_archive_utils.hpp
   src/plzma_convert_utf.hpp
   src/plzma_decoder_impl.hpp
   src/plzma_encoder_impl.hpp
@@ -288,8 +290,20 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Archive/Common/ItemNameUtils.h
   src/CPP/7zip/Archive/Common/MultiStream.h
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.h
+  src/CPP/7zip/Archive/Common/OutStreamWithSha1.h
   src/CPP/7zip/Archive/Common/StdAfx.h
+  src/CPP/7zip/Archive/Iso/IsoHandler.h
+  src/CPP/7zip/Archive/Iso/IsoHeader.h
+  src/CPP/7zip/Archive/Iso/IsoIn.h
+  src/CPP/7zip/Archive/Iso/StdAfx.h
+  src/CPP/7zip/Archive/Udf/StdAfx.h
+  src/CPP/7zip/Archive/Udf/UdfHandler.h
+  src/CPP/7zip/Archive/Udf/UdfIn.h
+  src/CPP/7zip/Archive/Wim/StdAfx.h
+  src/CPP/7zip/Archive/Wim/WimHandler.h
+  src/CPP/7zip/Archive/Wim/WimIn.h
   src/CPP/7zip/Archive/DllExports2.h
+  src/CPP/7zip/Archive/HandlerCont.h
   src/CPP/7zip/Archive/IArchive.h
   src/CPP/7zip/Archive/StdAfx.h
   src/CPP/7zip/Archive/XzHandler.h
@@ -316,21 +330,32 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Common/VirtThread.h
   src/CPP/7zip/Compress/Bcj2Coder.h
   src/CPP/7zip/Compress/BcjCoder.h
+  src/CPP/7zip/Compress/BitlDecoder.h
   src/CPP/7zip/Compress/BranchMisc.h
   src/CPP/7zip/Compress/BZip2Const.h
   src/CPP/7zip/Compress/BZip2Crc.h
   src/CPP/7zip/Compress/BZip2Decoder.h
   src/CPP/7zip/Compress/BZip2Encoder.h
   src/CPP/7zip/Compress/CopyCoder.h
+  src/CPP/7zip/Compress/DeflateConst.h
+  src/CPP/7zip/Compress/DeflateDecoder.h
+  src/CPP/7zip/Compress/LzfseDecoder.h
+  src/CPP/7zip/Compress/LzhDecoder.h
   src/CPP/7zip/Compress/Lzma2Decoder.h
   src/CPP/7zip/Compress/Lzma2Encoder.h
   src/CPP/7zip/Compress/LzmaDecoder.h
   src/CPP/7zip/Compress/LzmaEncoder.h
+  src/CPP/7zip/Compress/LzmsDecoder.h
+  src/CPP/7zip/Compress/LzOutWindow.h
+  src/CPP/7zip/Compress/Lzx.h
+  src/CPP/7zip/Compress/LzxDecoder.h
   src/CPP/7zip/Compress/PpmdDecoder.h
   src/CPP/7zip/Compress/PpmdEncoder.h
   src/CPP/7zip/Compress/StdAfx.h
+  src/CPP/7zip/Compress/XpressDecoder.h
   src/CPP/7zip/Compress/XzDecoder.h
   src/CPP/7zip/Compress/XzEncoder.h
+  src/CPP/7zip/Compress/ZlibDecoder.h
   src/CPP/7zip/Crypto/7zAes.h
   src/CPP/7zip/Crypto/MyAes.h
   src/CPP/7zip/Crypto/RandGen.h
@@ -362,6 +387,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/MyUnknown.h
   src/CPP/Common/MyVector.h
   src/CPP/Common/MyWindows.h
+  src/CPP/Common/MyXml.h
   src/CPP/Common/StdAfx.h
   src/CPP/Common/StdInStream.h
   src/CPP/Common/StdOutStream.h
@@ -379,6 +405,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Windows/NtCheck.h
   src/CPP/Windows/PropVariant.h
   src/CPP/Windows/PropVariantConv.h
+  src/CPP/Windows/PropVariantUtils.h
   src/CPP/Windows/StdAfx.h
   src/CPP/Windows/Synchronization.h
   src/CPP/Windows/System.h
@@ -415,6 +442,8 @@ set(LIBPLZMA_SOURCES
   src/C/Ppmd7.c
   src/C/Ppmd7Dec.c
   src/C/Ppmd7Enc.c
+  src/C/Sha1.c
+  src/C/Sha1Opt.c
   src/C/Sha256.c
   src/C/Sha256Opt.c
   src/C/Sort.c
@@ -428,6 +457,7 @@ set(LIBPLZMA_SOURCES
   src/plzma.cpp
   src/plzma_base_callback.cpp
   src/plzma_common.cpp
+  src/plzma_archive_utils.cpp
   src/plzma_decoder_impl.cpp
   src/plzma_encoder_impl.cpp
   src/plzma_exception.cpp
@@ -441,6 +471,7 @@ set(LIBPLZMA_SOURCES
   src/plzma_path_utils.cpp
   src/plzma_progress.cpp
   src/plzma_raw_heap_memory.cpp
+  src/plzma_stat.cpp
   src/plzma_string.cpp
   src/plzma_update_callback.cpp
   src/CPP/7zip/Archive/7z/7zDecode.cpp
@@ -464,9 +495,37 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/Common/ItemNameUtils.cpp
   src/CPP/7zip/Archive/Common/MultiStream.cpp
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.cpp
+  src/CPP/7zip/Archive/Common/OutStreamWithSha1.cpp
+  src/CPP/7zip/Archive/Iso/IsoHandler.cpp
+  src/CPP/7zip/Archive/Iso/IsoHeader.cpp
+  src/CPP/7zip/Archive/Iso/IsoIn.cpp
+  src/CPP/7zip/Archive/Iso/IsoRegister.cpp
+  src/CPP/7zip/Archive/Udf/UdfHandler.cpp
+  src/CPP/7zip/Archive/Udf/UdfIn.cpp
+  src/CPP/7zip/Archive/Wim/WimHandler.cpp
+  src/CPP/7zip/Archive/Wim/WimHandlerOut.cpp
+  src/CPP/7zip/Archive/Wim/WimIn.cpp
+  src/CPP/7zip/Archive/Wim/WimRegister.cpp
+  src/CPP/7zip/Archive/ApfsHandler.cpp
+  src/CPP/7zip/Archive/Base64Handler.cpp
   src/CPP/7zip/Archive/DllExports2.cpp
+  src/CPP/7zip/Archive/DmgHandler.cpp
+  src/CPP/7zip/Archive/ExtHandler.cpp
+  src/CPP/7zip/Archive/FatHandler.cpp
+  src/CPP/7zip/Archive/GptHandler.cpp
+  src/CPP/7zip/Archive/HandlerCont.cpp
+  src/CPP/7zip/Archive/HfsHandler.cpp
+  src/CPP/7zip/Archive/LzhHandler.cpp
   src/CPP/7zip/Archive/LzmaHandler.cpp
+  src/CPP/7zip/Archive/MachoHandler.cpp
+  src/CPP/7zip/Archive/MbrHandler.cpp
+  src/CPP/7zip/Archive/NtfsHandler.cpp
+  src/CPP/7zip/Archive/PeHandler.cpp
+  src/CPP/7zip/Archive/QcowHandler.cpp
   src/CPP/7zip/Archive/SplitHandler.cpp
+  src/CPP/7zip/Archive/VhdHandler.cpp
+  src/CPP/7zip/Archive/VhdxHandler.cpp
+  src/CPP/7zip/Archive/VmdkHandler.cpp
   src/CPP/7zip/Archive/XzHandler.cpp
   src/CPP/7zip/Common/CreateCoder.cpp
   src/CPP/7zip/Common/CWrappers.cpp
@@ -488,6 +547,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/Bcj2Register.cpp
   src/CPP/7zip/Compress/BcjCoder.cpp
   src/CPP/7zip/Compress/BcjRegister.cpp
+  src/CPP/7zip/Compress/BitlDecoder.cpp
   src/CPP/7zip/Compress/BranchMisc.cpp
   src/CPP/7zip/Compress/BranchRegister.cpp
   src/CPP/7zip/Compress/ByteSwap.cpp
@@ -498,18 +558,26 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/CodecExports.cpp
   src/CPP/7zip/Compress/CopyCoder.cpp
   src/CPP/7zip/Compress/CopyRegister.cpp
+  src/CPP/7zip/Compress/DeflateDecoder.cpp
   src/CPP/7zip/Compress/DeltaFilter.cpp
+  src/CPP/7zip/Compress/LzfseDecoder.cpp
+  src/CPP/7zip/Compress/LzhDecoder.cpp
   src/CPP/7zip/Compress/Lzma2Decoder.cpp
   src/CPP/7zip/Compress/Lzma2Encoder.cpp
   src/CPP/7zip/Compress/Lzma2Register.cpp
   src/CPP/7zip/Compress/LzmaDecoder.cpp
   src/CPP/7zip/Compress/LzmaEncoder.cpp
   src/CPP/7zip/Compress/LzmaRegister.cpp
+  src/CPP/7zip/Compress/LzOutWindow.cpp
+  src/CPP/7zip/Compress/LzmsDecoder.cpp
+  src/CPP/7zip/Compress/LzxDecoder.cpp
   src/CPP/7zip/Compress/PpmdDecoder.cpp
   src/CPP/7zip/Compress/PpmdEncoder.cpp
   src/CPP/7zip/Compress/PpmdRegister.cpp
+  src/CPP/7zip/Compress/XpressDecoder.cpp
   src/CPP/7zip/Compress/XzDecoder.cpp
   src/CPP/7zip/Compress/XzEncoder.cpp
+  src/CPP/7zip/Compress/ZlibDecoder.cpp
   src/CPP/7zip/Crypto/7zAes.cpp
   src/CPP/7zip/Crypto/7zAesRegister.cpp
   src/CPP/7zip/Crypto/MyAes.cpp
@@ -519,8 +587,10 @@ set(LIBPLZMA_SOURCES
   src/CPP/Common/CRC.cpp
   src/CPP/Common/CrcReg.cpp
   src/CPP/Common/IntToString.cpp
+  src/CPP/Common/MyMap.cpp
   src/CPP/Common/MyString.cpp
   src/CPP/Common/MyWindows.cpp
+  src/CPP/Common/MyXml.cpp
   src/CPP/Common/Sha256Reg.cpp
   src/CPP/Common/StringConvert.cpp
   src/CPP/Common/StringToInt.cpp
@@ -534,6 +604,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/Windows/FileName.cpp
   src/CPP/Windows/PropVariant.cpp
   src/CPP/Windows/PropVariantConv.cpp
+  src/CPP/Windows/PropVariantUtils.cpp
   src/CPP/Windows/System.cpp
   src/CPP/Windows/TimeUtils.cpp
 )
@@ -577,6 +648,8 @@ source_group("src"
   src/plzma_c_bindings_private.hpp
   src/plzma_common.cpp
   src/plzma_common.hpp
+  src/plzma_archive_utils.cpp
+  src/plzma_archive_utils.hpp
   src/plzma_convert_utf.hpp
   src/plzma_decoder_impl.cpp
   src/plzma_decoder_impl.hpp
@@ -603,6 +676,7 @@ source_group("src"
   src/plzma_progress.cpp
   src/plzma_progress.hpp
   src/plzma_raw_heap_memory.cpp
+  src/plzma_stat.cpp
   src/plzma_string.cpp
   src/plzma_update_callback.cpp
   src/plzma_update_callback.hpp
@@ -670,6 +744,9 @@ source_group("C"
   src/C/Ppmd7Enc.c
   src/C/Precomp.h
   src/C/RotateDefs.h
+  src/C/Sha1.c
+  src/C/Sha1.h
+  src/C/Sha1Opt.c
   src/C/Sha256.c
   src/C/Sha256.h
   src/C/Sha256Opt.c
@@ -706,6 +783,8 @@ source_group("CPP/Windows"
   src/CPP/Windows/PropVariant.h
   src/CPP/Windows/PropVariantConv.cpp
   src/CPP/Windows/PropVariantConv.h
+  src/CPP/Windows/PropVariantUtils.cpp
+  src/CPP/Windows/PropVariantUtils.h
   src/CPP/Windows/StdAfx.h
   src/CPP/Windows/Synchronization.h
   src/CPP/Windows/System.cpp
@@ -737,6 +816,7 @@ source_group("CPP/Common"
   src/CPP/Common/MyGuidDef.h
   src/CPP/Common/MyInitGuid.h
   src/CPP/Common/MyLinux.h
+  src/CPP/Common/MyMap.h
   src/CPP/Common/MyString.cpp
   src/CPP/Common/MyString.h
   src/CPP/Common/MyTypes.h
@@ -821,6 +901,8 @@ source_group("CPP/7zip/Archive/Common"
   src/CPP/7zip/Archive/Common/MultiStream.h
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.cpp
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.h
+  src/CPP/7zip/Archive/Common/OutStreamWithSha1.cpp
+  src/CPP/7zip/Archive/Common/OutStreamWithSha1.h
   src/CPP/7zip/Archive/Common/StdAfx.h
 )
 
@@ -935,12 +1017,19 @@ source_group("CPP/7zip/Compress"
   src/CPP/7zip/Compress/LzmaEncoder.cpp
   src/CPP/7zip/Compress/LzmaEncoder.h
   src/CPP/7zip/Compress/LzmaRegister.cpp
+  src/CPP/7zip/Compress/LzmsDecoder.cpp
+  src/CPP/7zip/Compress/LzmsDecoder.h
+  src/CPP/7zip/Compress/Lzx.h
+  src/CPP/7zip/Compress/LzxDecoder.h
+  src/CPP/7zip/Compress/LzxDecoder.cpp
   src/CPP/7zip/Compress/PpmdDecoder.cpp
   src/CPP/7zip/Compress/PpmdDecoder.h
   src/CPP/7zip/Compress/PpmdEncoder.cpp
   src/CPP/7zip/Compress/PpmdEncoder.h
   src/CPP/7zip/Compress/PpmdRegister.cpp
   src/CPP/7zip/Compress/StdAfx.h
+  src/CPP/7zip/Compress/XpressDecoder.h
+  src/CPP/7zip/Compress/XpressDecoder.cpp
   src/CPP/7zip/Compress/XzDecoder.cpp
   src/CPP/7zip/Compress/XzDecoder.h
   src/CPP/7zip/Compress/XzEncoder.cpp
@@ -958,6 +1047,7 @@ source_group("CPP/7zip/Crypto"
   src/CPP/7zip/Crypto/MyAesReg.cpp
   src/CPP/7zip/Crypto/RandGen.cpp
   src/CPP/7zip/Crypto/RandGen.h
+  src/CPP/7zip/Crypto/Sha1Cls.h
   src/CPP/7zip/Crypto/StdAfx.h
 )
 

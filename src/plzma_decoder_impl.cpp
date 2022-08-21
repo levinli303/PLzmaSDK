@@ -81,9 +81,9 @@ namespace plzma {
         
         CMyComPtr<DecoderImpl> selfPtr(this);
 #if defined(LIBPLZMA_NO_CRYPTO)
-        _openCallback = CMyComPtr<OpenCallback>(new OpenCallback(_stream, _type));
+        _openCallback = CMyComPtr<OpenCallback>(new OpenCallback(_stream));
 #else
-        _openCallback = CMyComPtr<OpenCallback>(new OpenCallback(_stream, _password, _type));
+        _openCallback = CMyComPtr<OpenCallback>(new OpenCallback(_stream, _password));
 #endif
         bool opened = false;
         _opening = true;
@@ -106,23 +106,14 @@ namespace plzma {
     }
     
     bool DecoderImpl::extract(const SharedPtr<ItemArray> & items, const Path & path, const bool usingItemsFullPath) {
-        if (_type == plzma_file_type_xz && items->count() > 1) {
-            throw Exception(plzma_error_code_invalid_arguments, "Xz type supports only one item.", __FILE__, __LINE__);
-        }
         return process(NArchive::NExtract::NAskMode::kExtract, items, path, usingItemsFullPath);
     }
     
     bool DecoderImpl::extract(const SharedPtr<ItemOutStreamArray> & items) {
-        if (_type == plzma_file_type_xz && items->count() > 1) {
-            throw Exception(plzma_error_code_invalid_arguments, "Xz type supports only one item.", __FILE__, __LINE__);
-        }
         return process(NArchive::NExtract::NAskMode::kExtract, items);
     }
     
     bool DecoderImpl::test(const SharedPtr<ItemArray> & items) {
-        if (_type == plzma_file_type_xz && items->count() > 1) {
-            throw Exception(plzma_error_code_invalid_arguments, "Xz type supports only one item.", __FILE__, __LINE__);
-        }
         return process(NArchive::NExtract::NAskMode::kTest, items);
     }
     
@@ -175,13 +166,12 @@ namespace plzma {
 #endif
     
     DecoderImpl::DecoderImpl(const CMyComPtr<InStreamBase> & stream,
-                             const plzma_file_type type,
                              const plzma_context context) : CMyUnknownImp(),
         _stream(stream),
 #if !defined(LIBPLZMA_NO_PROGRESS)
-        _progress(makeShared<Progress>(context)),
+        _progress(makeShared<Progress>(context))
 #endif
-        _type(type) {
+    {
             plzma::initialize();
     }
     
@@ -193,11 +183,10 @@ namespace plzma {
     }
     
     SharedPtr<Decoder> makeSharedDecoder(const SharedPtr<InStream> & stream,
-                                         const plzma_file_type type,
                                          const plzma_context context) {
         auto baseStream = stream.cast<InStreamBase>();
         if (baseStream) {
-            return SharedPtr<Decoder>(new DecoderImpl(CMyComPtr<InStreamBase>(baseStream.get()), type, context));
+            return SharedPtr<Decoder>(new DecoderImpl(CMyComPtr<InStreamBase>(baseStream.get()), context));
         }
         throw Exception(plzma_error_code_invalid_arguments, "No input stream.", __FILE__, __LINE__);
     }
@@ -212,7 +201,6 @@ namespace plzma {
 using namespace plzma;
 
 plzma_decoder plzma_decoder_create(plzma_in_stream * LIBPLZMA_NONNULL stream,
-                                   const plzma_file_type type,
                                    const plzma_context context) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_decoder, stream)
     SharedPtr<InStream> inStream(static_cast<InStream *>(stream->object));
@@ -220,7 +208,7 @@ plzma_decoder plzma_decoder_create(plzma_in_stream * LIBPLZMA_NONNULL stream,
     if (!baseStream) {
         throw Exception(plzma_error_code_invalid_arguments, "No input stream.", __FILE__, __LINE__);
     }
-    SharedPtr<DecoderImpl> decoderImpl(new DecoderImpl(CMyComPtr<InStreamBase>(baseStream.get()), type, context));
+    SharedPtr<DecoderImpl> decoderImpl(new DecoderImpl(CMyComPtr<InStreamBase>(baseStream.get()), context));
     createdCObject.object = static_cast<void *>(decoderImpl.take());
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_CATCH
 }

@@ -31,6 +31,10 @@
 #include "plzma_private.hpp"
 #include "plzma_path_utils.hpp"
 
+#if defined(LIBPLZMA_POSIX)
+#include <utime.h>
+#endif
+
 namespace plzma {
 
     using namespace pathUtils;
@@ -51,7 +55,7 @@ namespace plzma {
         }
         return res;
     }
-    
+
     const Path & Path::Iterator::component() const noexcept {
         return _component;
     }
@@ -545,7 +549,7 @@ namespace plzma {
 #endif
     }
     
-    plzma_path_stat Path::stat() const {
+    Stat Path::stat() const {
 #if defined(LIBPLZMA_MSC)
         return pathStat<wchar_t>(wide());
 #elif defined(LIBPLZMA_POSIX)
@@ -601,6 +605,43 @@ namespace plzma {
         return SharedPtr<Path::Iterator>(new PathIteratorMSC(*this, mode));
 #elif defined(LIBPLZMA_POSIX)
         return SharedPtr<Path::Iterator>(new PathIteratorPosix(*this, mode));
+#endif
+    }
+
+    bool Path::setFilePermissions(const uint16_t permissions) const
+    {
+#if defined(LIBPLZMA_MSC)
+        return _wchmod(wide(), permissions) == 0;
+#elif defined(LIBPLZMA_POSIX)
+        return chmod(utf8(), permissions) == 0;
+#endif
+    }
+
+    bool Path::setTime(const time_t creationTime, const time_t accessTime, const time_t modificationTime) const
+    {
+#if defined(LIBPLZMA_MSC)
+        HANDLE hFile;
+        hFile = CreateFileW(wide(),                // file to open
+                            GENERIC_WRITE,         // open for reading
+                            FILE_SHARE_READ,       // share for reading
+                            NULL,                  // default security
+                            OPEN_EXISTING,         // existing file only
+                            FILE_ATTRIBUTE_NORMAL, // normal file
+                            nullptr);
+        if (hFile == INVALID_HANDLE_VALUE)
+            return false;
+
+        FILETIME ctime = UnixTimeToFILETIME(creationTime);
+        FILETIME atime = UnixTimeToFILETIME(accessTime);
+        FILETIME mtime = UnixTimeToFILETIME(modificationTime);
+        BOOL success = SetFileTime(hFile, &ctime, &atime, &mtime);
+        CloseHandle(hFile);
+        return (bool)success;
+#elif defined(LIBPLZMA_POSIX)
+        utimbuf ut;
+        ut.actime = accessTime;
+        ut.modtime = modificationTime;
+        return utime(utf8(), &ut) == 0;
 #endif
     }
     
@@ -810,11 +851,11 @@ bool plzma_path_readable_and_writable(plzma_path * LIBPLZMA_NONNULL path) {
     LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH_RETURN(path, false)
 }
 
-plzma_path_stat plzma_path_get_stat(plzma_path * LIBPLZMA_NONNULL path) {
-    plzma_path_stat emptyStat{0, 0, 0, 0};
-    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY_RETURN(path, emptyStat)
-    return static_cast<Path *>(path->object)->stat();
-    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH_RETURN(path, emptyStat)
+plzma_stat plzma_path_get_stat(plzma_path * LIBPLZMA_NONNULL path) {
+    LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_path, path)
+    Stat result = static_cast<const Path *>(path->object)->stat();
+    createdCObject.object = static_cast<void *>(new Stat(static_cast<Stat &&>(result)));
+    LIBPLZMA_C_BINDINGS_CREATE_OBJECT_CATCH
 }
 
 void plzma_path_clear(plzma_path * LIBPLZMA_NONNULL path, const plzma_erase erase_type) {
