@@ -68,6 +68,7 @@ namespace plzma {
             OptionStoreCTime            = 1 << 5,
             OptionStoreMTime            = 1 << 6,
             OptionStoreATime            = 1 << 7,
+            OptionStorePermissions      = 1 << 8,
             
             OptionRequirePassword       = OptionEncryptContent | OptionEncryptHeader
         };
@@ -80,7 +81,7 @@ namespace plzma {
         struct AddedFile final {
             Path path;
             Path archivePath;
-            plzma_path_stat stat;
+            Stat stat;
         };
         struct AddedSubDir final {
             Path path;
@@ -89,7 +90,7 @@ namespace plzma {
         struct AddedStream final {
             SharedPtr<InStreamBase> stream;
             Path archivePath;
-            plzma_path_stat stat;
+            Stat stat;
         };
         CMyComPtr<OutStreamBase> _stream;
         CMyComPtr<IOutArchive> _archive;
@@ -101,7 +102,7 @@ namespace plzma {
             Path path;
             Path archivePath;
             SharedPtr<InStreamBase> stream;
-            plzma_path_stat stat;
+            Stat stat;
             UInt32 itemIndex;
             void close() {
                 if (stream) {
@@ -180,6 +181,8 @@ namespace plzma {
         virtual void setShouldStoreAccessTime(const bool store);
         virtual bool shouldStoreModificationTime() const;
         virtual void setShouldStoreModificationTime(const bool store);
+        virtual bool shouldStorePermissions() const;
+        virtual void setShouldStorePermissions(const bool store);
         
 #if !defined(LIBPLZMA_NO_C_BINDINGS)
         void setUtf8Callback(plzma_progress_delegate_utf8_callback callback);

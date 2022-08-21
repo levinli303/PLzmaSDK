@@ -74,6 +74,7 @@ namespace plzma {
     class OutFileStream final : public OutStreamBase {
     private:
         Path _path;
+        Stat _stat;
         FILE * _file = nullptr;
         
         LIBPLZMA_NON_COPYABLE_NON_MOVABLE(OutFileStream)
@@ -92,8 +93,8 @@ namespace plzma {
         virtual bool erase(const plzma_erase eraseType = plzma_erase_none) final;
         virtual RawHeapMemorySize copyContent() const final;
         
-        OutFileStream(const Path & path);
-        OutFileStream(Path && path);
+        OutFileStream(const Path & path, const Stat & stat);
+        OutFileStream(Path && path, Stat && stat);
         virtual ~OutFileStream() noexcept;
     };
     
@@ -199,6 +200,7 @@ namespace plzma {
     private:
         friend struct SharedPtr<OutMultiFileStream>;
         Path _dirPath;
+        Stat _itemStat;
         String _partName;
         String _partExtension;
         plzma_plzma_multi_stream_part_name_format _format = plzma_plzma_multi_stream_part_name_format_name_ext_00x;
@@ -214,12 +216,14 @@ namespace plzma {
         virtual bool erase(const plzma_erase eraseType = plzma_erase_none) final;
         
         OutMultiFileStream(const Path & dirPath,
+                           const Stat & itemStat,
                            const String & partName,
                            const String & partExtension,
                            const plzma_plzma_multi_stream_part_name_format format,
                            const plzma_size_t partSize);
         
         OutMultiFileStream(Path && dirPath,
+                           Stat && itemStat,
                            String && partName,
                            String && partExtension,
                            const plzma_plzma_multi_stream_part_name_format format,

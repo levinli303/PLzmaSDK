@@ -29,6 +29,9 @@
 
 #include "plzma_base_callback.hpp"
 #include "plzma_c_bindings_private.hpp"
+#include "plzma_common.hpp"
+
+#include <sys/stat.h>
 
 #include "CPP/7zip/Archive/DllExports2.h"
 

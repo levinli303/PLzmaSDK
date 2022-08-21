@@ -5,7 +5,9 @@
 #include "../../../C/CpuArch.h"
 
 #include "../../Common/ComTry.h"
+#include "../../Common/MyLinux.h"
 #include "../../Common/MyString.h"
+#include "../../Common/UTFConvert.h"
 
 #include "../../Windows/PropVariant.h"
 
@@ -264,6 +266,8 @@ struct CItem
 
   CFork DataFork;
   CFork ResourceFork;
+
+  AString SymLink;
 
   // for compressed attribute
   UInt64 UnpackSize;
@@ -700,6 +704,21 @@ static void LoadName(const Byte *data, unsigned len, UString &dest)
   dest.ReleaseBuf_SetLen(i);
 }
 
+static void LoadUTF8Name(const Byte *data, unsigned len, AString &dest)
+{
+  char *p = dest.GetBuf(len);
+  unsigned char i;
+  for (i = 0; i < len; i++)
+  {
+    char c = *(data + i);
+    if (c == 0)
+      break;
+    p[i] = c;
+  }
+  p[i] = 0;
+  dest.ReleaseBuf_SetLen(i);
+}
+
 static bool IsNameEqualTo(const Byte *data, const char *name)
 {
   for (unsigned i = 0;; i++)
@@ -1045,6 +1064,14 @@ HRESULT CDatabase::LoadCatalog(const CFork &fork, const CObjectVector<CIdExtents
 
         if (!item.DataFork.UpgradeAndTest(overflowExtentsArray[0], item.ID, Header.BlockSizeLog))
           HeadersError = true;
+
+        // get link target from the data fork
+        if (MY_LIN_S_ISLNK(item.FileMode))
+        {
+            CByteBuffer newbuf;
+            RINOK(ReadFile(item.DataFork, newbuf, inStream));
+            LoadUTF8Name(newbuf, newbuf.Size(), item.SymLink);
+        }
   
         item.ResourceFork.Parse(r + kForkRecSize);
         if (!item.ResourceFork.IsEmpty())
@@ -1405,7 +1432,8 @@ static const Byte kProps[] =
   kpidMTime,
   kpidATime,
   kpidChangeTime,
-  kpidPosixAttrib
+  kpidPosixAttrib,
+  kpidSymLink
 };
 
 static const Byte kArcProps[] =
@@ -1587,6 +1615,14 @@ STDMETHODIMP CHandler::GetProperty(UInt32 index, PROPID propID, PROPVARIANT *val
     case kpidChangeTime: HfsTimeToProp(item.AttrMTime, prop); break;
 
     case kpidPosixAttrib: if (ref.AttrIndex < 0) prop = (UInt32)item.FileMode; break;
+    case kpidSymLink:
+      if (MY_LIN_S_ISLNK(item.FileMode))
+      {
+          UString u;
+          ConvertUTF8ToUnicode(item.SymLink, u);
+          prop = u;
+      }
+      break;
   }
   prop.Detach(value);
   return S_OK;

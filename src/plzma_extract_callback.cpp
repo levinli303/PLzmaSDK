@@ -30,6 +30,7 @@
 #include "plzma_extract_callback.hpp"
 #include "plzma_common.hpp"
 #include "plzma_c_bindings_private.hpp"
+#include "plzma_archive_utils.hpp"
 
 #include "CPP/Common/Defs.h"
 #include "CPP/Windows/PropVariant.h"
@@ -162,7 +163,7 @@ namespace plzma {
         }
         fullPath.append(itemName);
 
-        OutFileStream * stream = new OutFileStream(static_cast<Path &&>(fullPath));
+        OutFileStream * stream = new OutFileStream(static_cast<Path &&>(fullPath), GetArchiveItemStat(_archive, index));
         _currentOutStream = stream;
 #if !defined(LIBPLZMA_NO_PROGRESS)
         _progress->setPath(static_cast<Path &&>(itemPath));

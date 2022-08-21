@@ -72,6 +72,22 @@ namespace plzma {
     bool Item::isDir() const noexcept {
         return _isDir;
     }
+
+    uint16_t Item::permissions() const noexcept {
+        return _permissions;
+    }
+
+    bool Item::hasPermissions() const noexcept {
+        return _hasPermissions;
+    }
+
+    bool Item::isSymbolicLink() const noexcept {
+        return _isSymbolicLink;
+    }
+
+    const String & Item::symbolicLink() const noexcept {
+        return _symbolicLink;
+    }
     
     void Item::setSize(const uint64_t size) noexcept {
         _size = size;
@@ -103,6 +119,21 @@ namespace plzma {
     
     void Item::setIsDir(const bool dir) noexcept {
         _isDir = dir;
+    }
+
+    void Item::setPermissions(const uint16_t permissions) noexcept {
+        _hasPermissions = true;
+        _permissions = permissions;
+    }
+
+    void Item::setIsSymbolicLink(bool symbolicLink) noexcept
+    {
+        _isSymbolicLink = symbolicLink;
+    }
+
+    void Item::setSymbolicLink(const String & symbolicLink) noexcept
+    {
+        _symbolicLink = symbolicLink;
     }
     
     void Item::retain() noexcept {
@@ -190,6 +221,26 @@ bool plzma_item_is_dir(const plzma_item * LIBPLZMA_NONNULL item) {
     return item->exception ? false : static_cast<const Item *>(item->object)->isDir();
 }
 
+uint16_t plzma_item_permissions(const plzma_item * LIBPLZMA_NONNULL item) {
+    return item->exception ? 0 : static_cast<const Item *>(item->object)->permissions();
+}
+
+bool plzma_item_has_permissions(const plzma_item * LIBPLZMA_NONNULL item) {
+    return item->exception ? false : static_cast<const Item *>(item->object)->hasPermissions();
+}
+
+LIBPLZMA_C_API(bool) plzma_item_is_symbolic_link(const plzma_item * LIBPLZMA_NONNULL item) {
+    return item->exception ? false : static_cast<const Item *>(item->object)->isSymbolicLink();
+}
+
+const char * LIBPLZMA_NULLABLE plzma_item_symbolic_link_utf8_string(const plzma_item * LIBPLZMA_NONNULL item) {
+    return item->exception ? nullptr : static_cast<const Item *>(item->object)->symbolicLink().utf8();
+}
+
+const wchar_t * LIBPLZMA_NULLABLE plzma_item_symbolic_link_wide_string(const plzma_item * LIBPLZMA_NONNULL item) {
+    return item->exception ? nullptr : static_cast<const Item *>(item->object)->symbolicLink().wide();
+}
+
 void plzma_item_set_size(plzma_item * LIBPLZMA_NONNULL item, const uint64_t size) {
     if (!item->exception) { static_cast<Item *>(item->object)->setSize(size); }
 }
@@ -220,6 +271,10 @@ void plzma_item_set_encrypted(plzma_item * LIBPLZMA_NONNULL item, const bool is_
 
 void plzma_item_set_is_dir(plzma_item * LIBPLZMA_NONNULL item, const bool is_dir) {
     if (!item->exception) { static_cast<Item *>(item->object)->setIsDir(is_dir); }
+}
+
+void plzma_item_set_permission(plzma_item * LIBPLZMA_NONNULL item, const uint16_t permissions) {
+    if (!item->exception) { static_cast<Item *>(item->object)->setPermissions(permissions); }
 }
 
 void plzma_item_release(plzma_item * LIBPLZMA_NONNULL item) {

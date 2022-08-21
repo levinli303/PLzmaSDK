@@ -231,21 +231,6 @@ typedef enum plzma_plzma_multi_stream_part_name_format {
     plzma_plzma_multi_stream_part_name_format_name_ext_00x   = 1
 } plzma_plzma_multi_stream_part_name_format;
 
-/// @brief Contains stat info of the path.
-typedef struct plzma_path_stat {
-    /// @brief Size in bytes.
-    uint64_t size;
-    
-    /// @brief Last path access unix timestamp.
-    time_t last_access;
-    
-    /// @brief Last path modification unix timestamp.
-    time_t last_modification;
-    
-    /// @brief Path creation unix timestamp.
-    time_t creation;
-} plzma_path_stat;
-
 
 /// @brief Callback type for deinitializing user defined context.
 /// @param context The non-null reference to any user defined context.
@@ -342,6 +327,7 @@ typedef struct plzma_object {
 typedef plzma_object plzma_path;
 typedef plzma_object plzma_path_iterator;
 typedef plzma_object plzma_item;
+typedef plzma_object plzma_stat;
 typedef plzma_object plzma_in_stream;
 typedef plzma_object plzma_in_stream_array;
 typedef plzma_object plzma_out_stream;
@@ -714,7 +700,7 @@ LIBPLZMA_C_API(bool) plzma_path_readable_and_writable(plzma_path * LIBPLZMA_NONN
 
 /// @brief Provides the stat info of the path.
 /// @return The stat info of the path or empty/zero-filled struct if operation was failed.
-LIBPLZMA_C_API(plzma_path_stat) plzma_path_get_stat(plzma_path * LIBPLZMA_NONNULL path);
+LIBPLZMA_C_API(plzma_stat) plzma_path_get_stat(plzma_path * LIBPLZMA_NONNULL path);
 
 
 /// @brief Clears the path object's string presentation.
@@ -861,6 +847,22 @@ LIBPLZMA_C_API(bool) plzma_item_encrypted(const plzma_item * LIBPLZMA_NONNULL it
 LIBPLZMA_C_API(bool) plzma_item_is_dir(const plzma_item * LIBPLZMA_NONNULL item);
 
 
+/// @return The permissions of the item.
+LIBPLZMA_C_API(uint16_t) plzma_item_permissions(const plzma_item * LIBPLZMA_NONNULL item);
+
+
+/// @return Checks the item has permissions or not.
+LIBPLZMA_C_API(bool) plzma_item_has_permissions(const plzma_item * LIBPLZMA_NONNULL item);
+
+
+/// @return Checks the item is a symbolic link or not.
+LIBPLZMA_C_API(bool) plzma_item_is_symbolic_link(const plzma_item * LIBPLZMA_NONNULL item);
+
+
+/// @return Checks the path this item is a symbolic link to.
+LIBPLZMA_C_API(const char * LIBPLZMA_NULLABLE) plzma_item_symbolic_link_utf8_string(const plzma_item * LIBPLZMA_NONNULL item);
+LIBPLZMA_C_API(const wchar_t * LIBPLZMA_NULLABLE) plzma_item_symbolic_link_wide_string(const plzma_item * LIBPLZMA_NONNULL item);
+
 /// @brief Updates the size of the item.
 /// @param size The size in bytes.
 LIBPLZMA_C_API(void) plzma_item_set_size(plzma_item * LIBPLZMA_NONNULL item, const uint64_t size);
@@ -899,8 +901,32 @@ LIBPLZMA_C_API(void) plzma_item_set_encrypted(plzma_item * LIBPLZMA_NONNULL item
 LIBPLZMA_C_API(void) plzma_item_set_is_dir(plzma_item * LIBPLZMA_NONNULL item, const bool is_dir);
 
 
+/// @brief Marks the item is directory.
+LIBPLZMA_C_API(void) plzma_item_set_permissions(plzma_item * LIBPLZMA_NONNULL item, const uint16_t permissions);
+
+
 /// @brief Releases the item object.
 LIBPLZMA_C_API(void) plzma_item_release(plzma_item * LIBPLZMA_NONNULL item);
+
+LIBPLZMA_C_API(plzma_stat) plzma_stat_create(void);
+LIBPLZMA_C_API(uint64_t) plzma_stat_size(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(time_t) plzma_stat_last_access(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(time_t) plzma_stat_last_modification(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(time_t) plzma_stat_creation(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(bool) plzma_stat_has_permissions(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(uint16_t) plzma_stat_permissions(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(bool) plzma_stat_is_symbolic_link(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(const char * LIBPLZMA_NULLABLE) plzma_stat_symbolic_link_utf8_string(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(const wchar_t * LIBPLZMA_NULLABLE) plzma_stat_symbolic_link_wide_string(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(void) plzma_stat_set_size(plzma_stat * LIBPLZMA_NONNULL stat, const uint64_t size);
+LIBPLZMA_C_API(void) plzma_stat_set_last_access(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
+LIBPLZMA_C_API(void) plzma_stat_set_last_modification(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
+LIBPLZMA_C_API(void) plzma_stat_set_creation(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
+LIBPLZMA_C_API(void) plzma_stat_set_permissions(plzma_stat * LIBPLZMA_NONNULL stat, const uint16_t permissions);
+LIBPLZMA_C_API(void) plzma_stat_set_is_symbolic_link(plzma_stat * LIBPLZMA_NONNULL stat, const bool is_symbolic_link);
+LIBPLZMA_C_API(void) plzma_stat_set_symbolic_link_utf8_string(plzma_stat * LIBPLZMA_NONNULL stat, const char * LIBPLZMA_NULLABLE utf8_string);
+LIBPLZMA_C_API(void) plzma_stat_set_symbolic_link_wide_string(plzma_stat * LIBPLZMA_NONNULL stat, const wchar_t * LIBPLZMA_NULLABLE wide_string);
+LIBPLZMA_C_API(void) plzma_stat_release(plzma_stat * LIBPLZMA_NONNULL stat);
 
 /// In stream
 
@@ -1016,7 +1042,7 @@ LIBPLZMA_C_API(void) plzma_in_stream_array_release(plzma_in_stream_array * LIBPL
 /// @return The output file stream or null, if exception was thrown.
 /// @note Call \a plzma_out_stream_release function to release the output file stream.
 /// @note The stream is ARC object.
-LIBPLZMA_C_API(plzma_out_stream) plzma_out_stream_create_with_path(const plzma_path * LIBPLZMA_NONNULL path);
+LIBPLZMA_C_API(plzma_out_stream) plzma_out_stream_create_with_path(const plzma_path * LIBPLZMA_NONNULL path, const plzma_stat * LIBPLZMA_NONNULL stat);
 
 
 /// @brief Creates the output file stream object with movable path.
@@ -1024,7 +1050,7 @@ LIBPLZMA_C_API(plzma_out_stream) plzma_out_stream_create_with_path(const plzma_p
 /// @return The output file stream or null, if exception was thrown.
 /// @note Call \a plzma_out_stream_release function to release the output file stream.
 /// @note The stream is ARC object.
-LIBPLZMA_C_API(plzma_out_stream) plzma_out_stream_create_with_pathm(plzma_path * LIBPLZMA_NONNULL path);
+LIBPLZMA_C_API(plzma_out_stream) plzma_out_stream_create_with_pathm(plzma_path * LIBPLZMA_NONNULL path, plzma_stat * LIBPLZMA_NONNULL stat);
 
 
 /// @brief Creates the output file stream object for writing to memory.
@@ -1075,6 +1101,7 @@ LIBPLZMA_C_API(void) plzma_out_stream_release(plzma_out_stream * LIBPLZMA_NONNUL
 /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is not a directory or there are no write permissions.
 /// @note Call \a plzma_out_multi_stream_release function to release the output multi stream.
 LIBPLZMA_C_API(plzma_out_multi_stream) plzma_out_multi_stream_create_with_directory_path_utf8_name_ext_format_part_size(const plzma_path * LIBPLZMA_NONNULL dir_path,
+                                                                                                                        const plzma_stat * LIBPLZMA_NONNULL item_stat,
                                                                                                                         const char * LIBPLZMA_NONNULL part_name,
                                                                                                                         const char * LIBPLZMA_NULLABLE part_extension,
                                                                                                                         const plzma_plzma_multi_stream_part_name_format format,
@@ -1095,6 +1122,7 @@ LIBPLZMA_C_API(plzma_out_multi_stream) plzma_out_multi_stream_create_with_direct
 /// @exception The \a Exception with \a plzma_error_code_invalid_arguments code in case if path is not a directory or there are no write permissions.
 /// @note Call \a plzma_out_multi_stream_release function to release the output multi stream.
 LIBPLZMA_C_API(plzma_out_multi_stream) plzma_out_multi_stream_create_with_directory_path_wide_name_ext_format_part_size(const plzma_path * LIBPLZMA_NONNULL dir_path,
+                                                                                                                        const plzma_stat * LIBPLZMA_NONNULL item_stat,
                                                                                                                         const wchar_t * LIBPLZMA_NONNULL part_name,
                                                                                                                         const wchar_t * LIBPLZMA_NULLABLE part_extension,
                                                                                                                         const plzma_plzma_multi_stream_part_name_format format,
@@ -1535,6 +1563,17 @@ LIBPLZMA_C_API(bool) plzma_encoder_should_store_modification_time(plzma_encoder 
 /// @brief Set encoder will store the last modification time of each item to the archive header, if such available.
 /// @note Thread-safe. Must be set before opening.
 LIBPLZMA_C_API(void) plzma_encoder_set_should_store_modification_time(plzma_encoder * LIBPLZMA_NONNULL encoder, const bool store);
+
+
+/// @brief Should encoder store the posix attributes of each item to the archive header, if such available.
+/// @note Enabled by default, the value is \a true.
+/// @note Thread-safe.
+LIBPLZMA_C_API(bool) plzma_encoder_should_store_permissions(plzma_encoder * LIBPLZMA_NONNULL encoder);
+
+
+/// @brief Set encoder will store the posix attributes of each item to the archive header, if such available.
+/// @note Thread-safe. Must be set before opening.
+LIBPLZMA_C_API(void) plzma_encoder_set_should_store_permissions(plzma_encoder * LIBPLZMA_NONNULL encoder, const bool store);
 
 
 /// @brief Adds the physical file or directory path to the encoder.

@@ -29,6 +29,9 @@
 
 #include "plzma_open_callback.hpp"
 #include "plzma_common.hpp"
+#include "plzma_archive_utils.hpp"
+
+#include <sys/stat.h>
 
 #include "CPP/7zip/Archive/DllExports2.h"
 
@@ -82,7 +85,7 @@ namespace plzma {
 
     std::tuple<OpenResult, UInt32> OpenCallback::open(CMyComPtr<IInStream> stream) {
         auto supportedCodecs = getSortedSupportedCodecUUIDs();
-        for (int i = 0; i < supportedCodecs.Size(); i++) {
+        for (unsigned i = 0; i < supportedCodecs.Size(); i++) {
             auto result = open(stream, supportedCodecs[i]);
             switch (std::get<0>(result)) {
                 case OpenResult::Ok:
@@ -138,12 +141,12 @@ namespace plzma {
 
         // Get sub stream if needed
         NWindows::NCOM::CPropVariant prop;
-        if (archive->GetArchiveProperty(kpidMainSubfile, &prop) != S_OK || prop.ulVal >= numItems) {
+        if (archive->GetArchiveProperty(kpidMainSubfile, &prop) != S_OK || prop.vt == VT_EMPTY) {
             // No sub stream
             return std::make_tuple(OpenResult::Ok, numItems);
         }
 
-        UInt32 mainSubfile = prop.ulVal;
+        UInt32 mainSubfile = static_cast<uint32_t>(PROPVARIANTGetUInt64(prop));
         CMyComPtr<IInArchiveGetStream> getStream;
         if (archive->QueryInterface(IID_IInArchiveGetStream, (void **)&getStream) != S_OK || !getStream) {
             // cannot fetch get stream method
@@ -190,15 +193,12 @@ namespace plzma {
     }
     
     SharedPtr<Item> OpenCallback::initialItemAt(const plzma_size_t index) {
-        auto archvie = _openedArchives.Back();
+        auto archive = _openedArchives.Back();
         if (index < _itemsCount) {
-            NWindows::NCOM::CPropVariant path, size;
+            NWindows::NCOM::CPropVariant path;
             SharedPtr<Item> item;
-            if (archvie->GetProperty(index, kpidPath, &path) == S_OK &&
-                archvie->GetProperty(index, kpidSize, &size) == S_OK &&
-                (path.vt == VT_EMPTY || path.vt == VT_BSTR)) {
-                    item = makeShared<Item>(static_cast<Path &&>(Path(path.bstrVal)), index);
-                    item->setSize(PROPVARIANTGetUInt64(size));
+            if (archive->GetProperty(index, kpidPath, &path) == S_OK && (path.vt == VT_EMPTY || path.vt == VT_BSTR)) {
+                item = makeShared<Item>(static_cast<Path &&>(Path(path.bstrVal)), index);
             }
             return item;
         }
@@ -206,41 +206,42 @@ namespace plzma {
     }
     
     SharedPtr<Item> OpenCallback::itemAt(const plzma_size_t index) {
-        auto archvie = _openedArchives.Back();
+        auto archive = _openedArchives.Back();
         auto item = initialItemAt(index);
         if (item) {
+            Stat stat = GetArchiveItemStat(archive, index);
+
+            item->setSize(stat.size());
+            item->setCreationTime(stat.creation());
+            item->setAccessTime(stat.lastAccess());
+            item->setModificationTime(stat.lastModification());
+            if (stat.hasPermissions()) {
+                item->setPermissions(stat.permissions());
+            }
+            if (stat.isSymbolicLink()) {
+                item->setIsSymbolicLink(true);
+                item->setSymbolicLink(stat.symbolicLink());
+            }
+
             NWindows::NCOM::CPropVariant prop;
-            if (archvie->GetProperty(index, kpidPackSize, &prop) == S_OK) {
+    
+            prop.Clear();
+            if (archive->GetProperty(index, kpidPackSize, &prop) == S_OK) {
                 item->setPackSize(PROPVARIANTGetUInt64(prop));
             }
-            
+
             prop.Clear();
-            if (archvie->GetProperty(index, kpidCTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
-                item->setCreationTime(FILETIMEToUnixTime(prop.filetime));
-            }
-            
-            prop.Clear();
-            if (archvie->GetProperty(index, kpidATime, &prop) == S_OK && prop.vt == VT_FILETIME) {
-                item->setAccessTime(FILETIMEToUnixTime(prop.filetime));
-            }
-            
-            prop.Clear();
-            if (archvie->GetProperty(index, kpidMTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
-                item->setModificationTime(FILETIMEToUnixTime(prop.filetime));
-            }
-            
-            prop.Clear();
-            if (archvie->GetProperty(index, kpidEncrypted, &prop) == S_OK) {
+            if (archive->GetProperty(index, kpidEncrypted, &prop) == S_OK) {
                 item->setEncrypted(PROPVARIANTGetBool(prop));
             }
             
             prop.Clear();
-            if (archvie->GetProperty(index, kpidCRC, &prop) == S_OK) {
+            if (archive->GetProperty(index, kpidCRC, &prop) == S_OK) {
                 item->setCrc32(static_cast<uint32_t>(PROPVARIANTGetUInt64(prop)));
             }
             
             prop.Clear();
-            if (archvie->GetProperty(index, kpidIsDir, &prop) == S_OK) {
+            if (archive->GetProperty(index, kpidIsDir, &prop) == S_OK) {
                 item->setIsDir(PROPVARIANTGetBool(prop));
             }
         }

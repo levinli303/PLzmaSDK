@@ -95,6 +95,7 @@ namespace plzma {
         FILE * f = _path.openFile("w+b");
         if (f) {
             _file = f;
+
         } else {
             Exception exception(plzma_error_code_io, nullptr, __FILE__, __LINE__);
             exception.setWhat("Can't open out-stream for writing to file in binary mode with path: ", _path.utf8(), nullptr);
@@ -108,6 +109,10 @@ namespace plzma {
         if (_file) {
             fclose(_file);
             _file = nullptr;
+            if (_stat.hasPermissions()) {
+                _path.setFilePermissions(_stat.permissions());
+            }
+            _path.setTime(_stat.creation(), _stat.lastAccess(), _stat.lastModification());
         }
     }
     
@@ -131,17 +136,19 @@ namespace plzma {
         return _file ? RawHeapMemorySize(RawHeapMemory(), 0) : fileContent(_path);
     }
     
-    OutFileStream::OutFileStream(const Path & path) : OutStreamBase(),
-        _path(path) {
+    OutFileStream::OutFileStream(const Path & path, const Stat & stat) : OutStreamBase(),
+        _path(path),
+        _stat(stat) {
             if (_path.count() == 0) {
                 Exception exception(plzma_error_code_invalid_arguments, "Can't instantiate out-stream without path.", __FILE__, __LINE__);
                 exception.setReason("The path size is zero.", nullptr);
                 throw exception;
             }
     }
-    
-    OutFileStream::OutFileStream(Path && path) : OutStreamBase(),
-        _path(static_cast<Path &&>(path)) {
+
+    OutFileStream::OutFileStream(Path && path, Stat && stat) : OutStreamBase(),
+        _path(static_cast<Path &&>(path)),
+        _stat(static_cast<Stat &&>(stat)) {
             if (_path.count() == 0) {
                 Exception exception(plzma_error_code_invalid_arguments, "Can't instantiate out-stream without path.", __FILE__, __LINE__);
                 exception.setReason("The path size is zero.", nullptr);
@@ -661,7 +668,7 @@ namespace plzma {
         }
         path.append(static_cast<char *>(buff));
 #endif
-        const SharedPtr<OutStreamBase> stream(new OutFileStream(static_cast<Path &&>(path)));
+        const SharedPtr<OutStreamBase> stream(new OutFileStream(static_cast<Path &&>(path), static_cast<Stat &&>(_itemStat)));
         _parts.push(stream);
         return stream;
     }
@@ -709,35 +716,39 @@ namespace plzma {
     }
 
     OutMultiFileStream::OutMultiFileStream(const Path & dirPath,
+                                           const Stat & itemStat,
                                            const String & partName,
                                            const String & partExtension,
                                            const plzma_plzma_multi_stream_part_name_format format,
                                            const plzma_size_t partSize) : OutMultiStreamBase(partSize) {
         preparePath(dirPath);
         _dirPath = dirPath;
+        _itemStat = itemStat;
         _partName = partName;
         _partExtension = partExtension;
         _format = format;
     }
 
     OutMultiFileStream::OutMultiFileStream(Path && dirPath,
+                                           Stat && itemStat,
                                            String && partName,
                                            String && partExtension,
                                            const plzma_plzma_multi_stream_part_name_format format,
                                            const plzma_size_t partSize) : OutMultiStreamBase(partSize) {
         preparePath(dirPath);
         _dirPath = static_cast<Path &&>(dirPath);
+        _itemStat = static_cast<Stat &&>(itemStat);
         _partName = static_cast<String &&>(partName);
         _partExtension = static_cast<String &&>(partExtension);
         _format = format;
     }
     
-    SharedPtr<OutStream> makeSharedOutStream(const Path & path) {
-        return SharedPtr<OutStream>(new OutFileStream(path));
+    SharedPtr<OutStream> makeSharedOutStream(const Path & path, const Stat & stat) {
+        return SharedPtr<OutStream>(new OutFileStream(path, stat));
     }
     
-    SharedPtr<OutStream> makeSharedOutStream(Path && path) {
-        return SharedPtr<OutStream>(new OutFileStream(static_cast<Path &&>(path)));
+    SharedPtr<OutStream> makeSharedOutStream(Path && path, Stat && stat) {
+        return SharedPtr<OutStream>(new OutFileStream(static_cast<Path &&>(path), static_cast<Stat &&>(stat)));
     }
     
     SharedPtr<OutStream> makeSharedOutStream(void) {
@@ -745,19 +756,22 @@ namespace plzma {
     }
 
     SharedPtr<OutMultiStream> makeSharedOutMultiStream(const Path & dirPath,
+                                                       const Stat & itemStat,
                                                        const String & partName,
                                                        const String & partExtension,
                                                        const plzma_plzma_multi_stream_part_name_format format,
                                                        const plzma_size_t partSize) {
-        return SharedPtr<OutMultiStream>(new OutMultiFileStream(dirPath, partName, partExtension, format, partSize));
+        return SharedPtr<OutMultiStream>(new OutMultiFileStream(dirPath, itemStat, partName, partExtension, format, partSize));
     }
 
     SharedPtr<OutMultiStream> makeSharedOutMultiStream(Path && dirPath,
+                                                       Stat && itemStat,
                                                        String && partName,
                                                        String && partExtension,
                                                        const plzma_plzma_multi_stream_part_name_format format,
                                                        const plzma_size_t partSize) {
         return SharedPtr<OutMultiStream>(new OutMultiFileStream(static_cast<Path &&>(dirPath),
+                                                                static_cast<Stat &&>(itemStat),
                                                                 static_cast<String &&>(partName),
                                                                 static_cast<String &&>(partExtension),
                                                                 format,
@@ -777,16 +791,16 @@ namespace plzma {
 
 using namespace plzma;
 
-plzma_out_stream plzma_out_stream_create_with_path(const plzma_path * LIBPLZMA_NONNULL path) {
+plzma_out_stream plzma_out_stream_create_with_path(const plzma_path * LIBPLZMA_NONNULL path, const plzma_stat * LIBPLZMA_NONNULL stat) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_out_stream, path)
-    auto stream = makeSharedOutStream(*static_cast<const Path *>(path->object));
+    auto stream = makeSharedOutStream(*static_cast<const Path *>(path->object), *static_cast<const Stat *>(stat->object));
     createdCObject.object = static_cast<void *>(stream.take());
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_CATCH
 }
 
-plzma_out_stream plzma_out_stream_create_with_pathm(plzma_path * LIBPLZMA_NONNULL path) {
+plzma_out_stream plzma_out_stream_create_with_pathm(plzma_path * LIBPLZMA_NONNULL path, plzma_stat * LIBPLZMA_NONNULL stat) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_out_stream, path)
-    auto stream = makeSharedOutStream(static_cast<Path &&>(*static_cast<Path *>(path->object)));
+    auto stream = makeSharedOutStream(static_cast<Path &&>(*static_cast<Path *>(path->object)), static_cast<Stat &&>(*static_cast<Stat *>(stat->object)));
     createdCObject.object = static_cast<void *>(stream.take());
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_CATCH
 }
@@ -830,13 +844,16 @@ void plzma_out_stream_release(plzma_out_stream * LIBPLZMA_NONNULL stream) {
 }
 
 plzma_out_multi_stream plzma_out_multi_stream_create_with_directory_path_utf8_name_ext_format_part_size(const plzma_path * LIBPLZMA_NONNULL dir_path,
+                                                                                                        const plzma_stat * LIBPLZMA_NONNULL item_stat,
                                                                                                         const char * LIBPLZMA_NONNULL part_name,
                                                                                                         const char * LIBPLZMA_NULLABLE part_extension,
                                                                                                         const plzma_plzma_multi_stream_part_name_format format,
                                                                                                         const plzma_size_t part_size) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_out_multi_stream, dir_path)
     auto dirPath = static_cast<const Path &>(*static_cast<const Path *>(dir_path->object));
+    auto itemStat = static_cast<const Stat &>(*static_cast<const Stat *>(item_stat->object));
     auto stream = makeSharedOutMultiStream(static_cast<Path &&>(dirPath),
+                                           static_cast<Stat &&>(itemStat),
                                            String(part_name),
                                            String(part_extension),
                                            format,
@@ -846,13 +863,16 @@ plzma_out_multi_stream plzma_out_multi_stream_create_with_directory_path_utf8_na
 }
 
 plzma_out_multi_stream plzma_out_multi_stream_create_with_directory_path_wide_name_ext_format_part_size(const plzma_path * LIBPLZMA_NONNULL dir_path,
+                                                                                                        const plzma_stat * LIBPLZMA_NONNULL item_stat,
                                                                                                         const wchar_t * LIBPLZMA_NONNULL part_name,
                                                                                                         const wchar_t * LIBPLZMA_NULLABLE part_extension,
                                                                                                         const plzma_plzma_multi_stream_part_name_format format,
                                                                                                         const plzma_size_t part_size) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_out_multi_stream, dir_path)
     auto dirPath = static_cast<const Path &>(*static_cast<const Path *>(dir_path->object));
+    auto itemStat = static_cast<const Stat &>(*static_cast<const Stat *>(item_stat->object));
     auto stream = makeSharedOutMultiStream(static_cast<Path &&>(dirPath),
+                                           static_cast<Stat &&>(itemStat),
                                            String(part_name),
                                            String(part_extension),
                                            format,

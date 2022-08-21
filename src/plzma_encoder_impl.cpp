@@ -33,6 +33,7 @@
 #include "plzma_common.hpp"
 #include "plzma_open_callback.hpp"
 #include "plzma_c_bindings_private.hpp"
+#include "plzma_path_utils.hpp"
 
 #include <stdint.h>
 #include <limits.h>
@@ -115,20 +116,32 @@ namespace plzma {
                 case kpidIsAnti: prop = false; break;
                 case kpidPath: prop = _source.archivePath.wide(); break;
                 case kpidIsDir: prop = false; break;
-                case kpidSize: prop = _source.stat.size; break;
+                case kpidSize: prop = _source.stat.size(); break;
                 //case kpidAttrib: prop = dirItem.Attrib; break; // 9
-                case kpidCTime: prop = UnixTimeToFILETIME(_source.stat.creation); break;
-                case kpidATime: prop = UnixTimeToFILETIME(_source.stat.last_access); break;
-                case kpidMTime: prop = UnixTimeToFILETIME(_source.stat.last_modification); break;
+                case kpidCTime: prop = UnixTimeToFILETIME(_source.stat.creation()); break;
+                case kpidATime: prop = UnixTimeToFILETIME(_source.stat.lastAccess()); break;
+                case kpidMTime: prop = UnixTimeToFILETIME(_source.stat.lastModification()); break;
                 
-                // Tar
                 case kpidSymLink:
-                case kpidHardLink:
-                    if (_type == plzma_file_type_tar) {
+                    if (_source.stat.isSymbolicLink()) {
+                        prop = _source.stat.symbolicLink().wide();
+                    } else {
                         prop = L"";
                     }
                     break;
-                case kpidPosixAttrib:   // 53, tar
+                case kpidHardLink:
+                    prop = L"";
+                    break;
+                case kpidPosixAttrib:
+                    {
+                        UInt32 base = _source.stat.isSymbolicLink() ? S_IFLNK : S_IFREG;
+                        if (_source.stat.hasPermissions()){
+                            prop = (base | _source.stat.permissions());
+                        } else {
+                            prop = base | 0644;
+                        }
+                    }
+                    break;
                 case kpidUser:          // 25, tar
                 case kpidGroup:         // 26, tar
                     break;
@@ -329,9 +342,12 @@ namespace plzma {
             AddedStream addedStream;
             addedStream.stream = stream.cast<InStreamBase>();
             addedStream.archivePath = archivePath;
-            plzma_path_stat stat;
-            stat.creation = stat.last_access = stat.last_modification = time(nullptr);
-            stat.size = 0;
+            Stat stat;
+            time_t current = time(nullptr);
+            stat.setCreation(current);
+            stat.setLastAccess(current);
+            stat.setLastModification(current);
+            stat.setSize(0);
             addedStream.stat = stat;
             _streams.push(static_cast<AddedStream &&>(addedStream));
         } else {
@@ -413,7 +429,7 @@ namespace plzma {
             HRESULT res = S_OK;
             _source.stream = stream.stream;
             _source.archivePath = stream.archivePath;
-            if (stream.stat.size == 0) {
+            if (stream.stat.size() == 0) {
                 stream.stream->open();
                 UInt64 pos = 0;
                 res = stream.stream->Seek(0, SZ_SEEK_END, &pos);
@@ -421,7 +437,7 @@ namespace plzma {
                 if (res != S_OK) {
                     return res;
                 }
-                stream.stat.size = pos;
+                stream.stat.setSize(0);
             }
             _source.stat = stream.stat;
             return S_OK;
@@ -433,7 +449,7 @@ namespace plzma {
     void EncoderImpl::applySettings7z(ISetProperties * properties) {
         using namespace NWindows::NCOM;
         
-        static const UInt32 settingsCount = 9;
+        static const UInt32 settingsCount = 10;
         static const wchar_t * names[settingsCount] = {
             L"0",   // method
             L"s",   // solid
@@ -443,6 +459,7 @@ namespace plzma {
             L"tc",  // write creation time
             L"ta",  // write access time
             L"tm",  // write modification time
+            L"tr",  // write posix attributes
             
             L"hcf"  // compress header full, true - add, false - don't add/ignore
         };
@@ -470,6 +487,7 @@ namespace plzma {
             CPropVariant((_options & OptionStoreCTime) ? true : false),     // write creation time
             CPropVariant((_options & OptionStoreATime) ? true : false),     // write access time
             CPropVariant((_options & OptionStoreMTime) ? true : false),     // write modification time
+            CPropVariant((_options & OptionStorePermissions) ? true : false),     // write posix attributes
             
             CPropVariant(true)                                              // compress header full, true - add, false - don't add/ignore
         };
@@ -682,6 +700,8 @@ namespace plzma {
     void EncoderImpl::setShouldStoreAccessTime(const bool store) { setOption(OptionStoreATime, store); }
     bool EncoderImpl::shouldStoreModificationTime() const { return hasOption(OptionStoreMTime); }
     void EncoderImpl::setShouldStoreModificationTime(const bool store) { setOption(OptionStoreMTime, store); }
+    bool EncoderImpl::shouldStorePermissions() const { return hasOption(OptionStorePermissions); }
+    void EncoderImpl::setShouldStorePermissions(const bool store) { setOption(OptionStorePermissions, store); }
     
     uint8_t EncoderImpl::compressionLevel() const {
         LIBPLZMA_LOCKGUARD(lock, _mutex)
@@ -720,7 +740,7 @@ namespace plzma {
 #endif
             // docs
             _options |= (OptionSolid | OptionCompressHeader | OptionCompressHeaderFull);
-            _options |= (OptionStoreCTime | OptionStoreMTime | OptionStoreATime);
+            _options |= (OptionStoreCTime | OptionStoreMTime | OptionStoreATime | OptionStorePermissions);
     }
     
     EncoderImpl::~EncoderImpl() {
@@ -924,6 +944,18 @@ bool plzma_encoder_should_store_modification_time(plzma_encoder * LIBPLZMA_NONNU
 void plzma_encoder_set_should_store_modification_time(plzma_encoder * LIBPLZMA_NONNULL encoder, const bool store) {
     LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY(encoder)
     static_cast<EncoderImpl *>(encoder->object)->setShouldStoreModificationTime(store);
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH(encoder)
+}
+
+bool plzma_encoder_should_store_posix_attributes(plzma_encoder * LIBPLZMA_NONNULL encoder) {
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY_RETURN(encoder, false)
+    return static_cast<EncoderImpl *>(encoder->object)->shouldStorePermissions();
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH_RETURN(encoder, false)
+}
+
+void plzma_encoder_set_should_store_posix_attributes(plzma_encoder * LIBPLZMA_NONNULL encoder, const bool store) {
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY(encoder)
+    static_cast<EncoderImpl *>(encoder->object)->setShouldStorePermissions(store);
     LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH(encoder)
 }
 
