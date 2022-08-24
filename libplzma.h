@@ -214,18 +214,6 @@ typedef enum plzma_error_code {
 } plzma_error_code;
 
 
-/// @brief The maximum type for holding all bitmask combinations of the \a plzma_open_dir_mode enumeration.
-typedef uint8_t plzma_open_dir_mode_t;
-
-
-/// @brief The enumeration with bitmask options for opening directory path.
-/// Currently uses for defining behavior of directory iteration.
-typedef enum plzma_open_dir_mode {
-    /// @brief Follow the symbolic links.
-    plzma_open_dir_mode_follow_symlinks     = 1 << 0
-} plzma_open_dir_mode;
-
-
 typedef enum plzma_plzma_multi_stream_part_name_format {
     /// @brief "File"."Extension"."002". The maximum number of parts is 999.
     plzma_plzma_multi_stream_part_name_format_name_ext_00x   = 1
@@ -325,7 +313,6 @@ typedef struct plzma_object {
 } plzma_object;
 
 typedef plzma_object plzma_path;
-typedef plzma_object plzma_path_iterator;
 typedef plzma_object plzma_item;
 typedef plzma_object plzma_stat;
 typedef plzma_object plzma_in_stream;
@@ -741,49 +728,9 @@ LIBPLZMA_C_API(bool) plzma_path_create_dir(plzma_path * LIBPLZMA_NONNULL path, c
 LIBPLZMA_C_API(LIBPLZMA_WARN_UNUSED_RESULT FILE * LIBPLZMA_NULLABLE) plzma_path_open_file(plzma_path * LIBPLZMA_NONNULL path, const char * LIBPLZMA_NONNULL mode);
 
 
-/// @brief Opens a directory associated with path for iterating the content.
-/// @param mode The open directory mode.
-/// @return New instance of the path iterator or null, if exception was thrown.
-LIBPLZMA_C_API(plzma_path_iterator) plzma_path_open_dir(plzma_path * LIBPLZMA_NONNULL path, const plzma_open_dir_mode_t mode);
-
-
 /// @brief Releases the path object.
 /// @note All references are invalidated.
 LIBPLZMA_C_API(void) plzma_path_release(plzma_path * LIBPLZMA_NULLABLE path);
-
-/// Path Iterator
-
-/// @brief Recevies the current file or directory component.
-/// @return The new instance of the path object.
-LIBPLZMA_C_API(plzma_path) plzma_path_iterator_component(const plzma_path_iterator * LIBPLZMA_NONNULL iterator);
-
-
-/// @brief Recevies the current file or directory path.
-/// @return The new instance of the path object.
-LIBPLZMA_C_API(plzma_path) plzma_path_iterator_path(const plzma_path_iterator * LIBPLZMA_NONNULL iterator);
-
-
-/// @brief Recevies the current file or directory full path, prefixed with root path.
-/// @return The new instance of the path object.
-LIBPLZMA_C_API(plzma_path) plzma_path_iterator_full_path(const plzma_path_iterator * LIBPLZMA_NONNULL iterator);
-
-
-/// @brief Checks the current iterator's path is directory.
-/// @return \a true the iterator's path is directory.
-LIBPLZMA_C_API(bool) plzma_path_iterator_is_dir(const plzma_path_iterator * LIBPLZMA_NONNULL iterator);
-
-
-/// @brief Continue iteration.
-/// @return \a true The next file or directory located, otherwise iteration is finished.
-LIBPLZMA_C_API(bool) plzma_path_iterator_next(plzma_path_iterator * LIBPLZMA_NONNULL iterator);
-
-
-/// @brief Closes iteration.
-LIBPLZMA_C_API(void) plzma_path_iterator_close(plzma_path_iterator * LIBPLZMA_NONNULL iterator);
-
-
-/// @brief Releases the iterator object.
-LIBPLZMA_C_API(void) plzma_path_iterator_release(plzma_path_iterator * LIBPLZMA_NULLABLE iterator);
 
 /// Item
 
@@ -1578,12 +1525,10 @@ LIBPLZMA_C_API(void) plzma_encoder_set_should_store_permissions(plzma_encoder * 
 
 /// @brief Adds the physical file or directory path to the encoder.
 /// @param path The file or directory path. Duplicated path is not allowed.
-/// @param open_dir_mode The mode for opening directory in case if \a path is a directory path.
 /// @param archive_path The optional path of how the item's \a path will be presented in archive.
 /// @note Thread-safe. Must be set before opening.
 LIBPLZMA_C_API(void) plzma_encoder_add_path(plzma_encoder * LIBPLZMA_NONNULL encoder,
                                             const plzma_path * LIBPLZMA_NONNULL path,
-                                            const plzma_open_dir_mode_t open_dir_mode,
                                             const plzma_path * LIBPLZMA_NULLABLE archive_path);
 
 

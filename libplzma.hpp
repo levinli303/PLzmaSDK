@@ -545,7 +545,6 @@ namespace plzma {
     /// @li 2. The previous content will be erased with \a plzma_erase_zero, i.e. zero-filled.
     struct LIBPLZMA_CPP_CLASS_API Path final : public String {
     public:
-        class Iterator;
         virtual void set(const String & str) override final;
         virtual void set(const wchar_t * LIBPLZMA_NULLABLE str) override final;
         virtual void set(const char * LIBPLZMA_NULLABLE str) override final;
@@ -629,12 +628,6 @@ namespace plzma {
         FILE * LIBPLZMA_NULLABLE openFile(const char * LIBPLZMA_NONNULL mode) const;
         
         
-        /// @brief Opens a directory associated with path for iterating the content.
-        /// @param mode The open directory mode.
-        /// @return The \a SharedPtr of the path iterator.
-        /// @exception The \a Exception with \a plzma_error_code_io code in case if a directory can't be opened.
-        SharedPtr<Iterator> openDir(const plzma_open_dir_mode_t mode = 0) const;
-
         bool setFilePermissions(const uint16_t permissions) const;
         bool setTime(const time_t creationTime, const time_t accessTime, const time_t modificationTime) const;
         
@@ -655,55 +648,6 @@ namespace plzma {
         /// @return The path with existed temporary directory or empty path.
         static Path tmpPath();
     };
-    
-    
-    /// @brief Interface to a platform specific directory path iterator.
-    class LIBPLZMA_CPP_CLASS_API Path::Iterator {
-    private:
-        friend struct SharedPtr<Path::Iterator>;
-        virtual void retain() noexcept = 0;
-        virtual void release() noexcept = 0;
-        
-    protected:
-        Path _root;
-        Path _path;
-        Path _component;
-        uint16_t _flags = 0;
-        plzma_open_dir_mode_t _mode = 0;
-        
-        void clearPaths() noexcept;
-        Iterator() = delete;
-        Iterator(const Path & root, const plzma_open_dir_mode_t mode);
-        virtual ~Iterator() noexcept = default;
-        
-    public:
-        /// @brief Recevies the current file or directory component.
-        const Path & component() const noexcept;
-        
-        
-        /// @brief Recevies the current file or directory path.
-        Path path() const;
-        
-        
-        /// @brief Recevies the current file or directory full path, prefixed with root path.
-        Path fullPath() const;
-        
-        
-        /// @brief Checks the current iterator's path is directory.
-        /// @return \a true the iterator's path is directory.
-        bool isDir() const noexcept;
-        
-        
-        /// @brief Continue iteration.
-        /// @return \a true The next file or directory located, otherwise iteration is finished.
-        virtual bool next() = 0;
-        
-        
-        /// @brief Closes iteration and all open directory descriptors/handlers.
-        virtual void close() noexcept = 0;
-    };
-    
-    template struct LIBPLZMA_CPP_CLASS_API SharedPtr<Path::Iterator>;
     
     /// @brief The archive item.
     class LIBPLZMA_CPP_CLASS_API Item final {
@@ -1472,10 +1416,9 @@ namespace plzma {
         
         /// @brief Adds the physical file or directory path to the encoder.
         /// @param path The file or directory path. Duplicated path is not allowed.
-        /// @param openDirMode The mode for opening directory in case if \a path is a directory path.
         /// @param archivePath The optional path of how the item's \a path will be presented in archive.
         /// @note Thread-safe. Must be set before opening.
-        virtual void add(const Path & path, const plzma_open_dir_mode_t openDirMode = 0, const Path & archivePath = Path()) = 0;
+        virtual void add(const Path & path, const Path & archivePath = Path()) = 0;
         
         
         /// @brief Adds the in-stream to the encoder.
