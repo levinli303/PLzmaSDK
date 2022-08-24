@@ -79,13 +79,15 @@ namespace plzma {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result != S_OK) {
                 return _result;
+            } else if ( (_result = setupSource(index)) != S_OK) {
+                return _result;
             }
-            LIBPLZMA_SET_VALUE_TO_PTR(newData, BoolToInt(true))
+            LIBPLZMA_SET_VALUE_TO_PTR(newData, BoolToInt(!_source.isDir))
             LIBPLZMA_SET_VALUE_TO_PTR(newProperties, BoolToInt(true))
             if (indexInArchive) {
                 *indexInArchive = (UInt32)(Int32)-1;
             }
-            return (_result = setupSource(index));
+            return S_OK;
         } catch (const Exception & exception) {
             _exception = exception.moveToHeapCopy();
             return E_FAIL;
@@ -115,7 +117,7 @@ namespace plzma {
             switch (propID) {
                 case kpidIsAnti: prop = false; break;
                 case kpidPath: prop = _source.archivePath.wide(); break;
-                case kpidIsDir: prop = false; break;
+                case kpidIsDir: prop = _source.isDir; break;
                 case kpidSize: prop = _source.stat.size(); break;
                 //case kpidAttrib: prop = dirItem.Attrib; break; // 9
                 case kpidCTime: prop = UnixTimeToFILETIME(_source.stat.creation()); break;
@@ -134,7 +136,7 @@ namespace plzma {
                     break;
                 case kpidPosixAttrib:
                     {
-                        UInt32 base = _source.stat.isSymbolicLink() ? S_IFLNK : S_IFREG;
+                        UInt32 base = _source.isDir ? S_IFDIR : (_source.stat.isSymbolicLink() ? S_IFLNK : S_IFREG);
                         if (_source.stat.hasPermissions()){
                             prop = (base | _source.stat.permissions());
                         } else {
@@ -172,8 +174,11 @@ namespace plzma {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result != S_OK) {
                 return _result;
-            } else if ( (_result = setupSource(index)) != S_OK) {
+            } else if ((_result = setupSource(index)) != S_OK) {
                 return _result;
+            } else if (_source.isDir) {
+                // directory item has no data
+                return  E_FAIL;
             }
             
             if (!_source.stream) {
@@ -290,7 +295,7 @@ namespace plzma {
 #endif
     }
     
-    void EncoderImpl::add(const Path & path, const plzma_open_dir_mode_t openDirMode, const Path & archivePath) {
+    void EncoderImpl::add(const Path & path, const Path & archivePath) {
         LIBPLZMA_LOCKGUARD(lock, _mutex)
         if (_archive || _opening || _result == E_ABORT) {
             return;
@@ -311,7 +316,6 @@ namespace plzma {
             AddedPath addedPath;
             addedPath.path = path;
             addedPath.archivePath = archivePath;
-            addedPath.openDirMode = openDirMode;
             addedPath.isDir = isDir;
             _paths.push(static_cast<AddedPath &&>(addedPath));
         } else {
@@ -361,23 +365,12 @@ namespace plzma {
             AddedPath addedPath(static_cast<AddedPath &&>(_paths.at(i))); // move -> no longer needed
             Path rootArchivePath = addedPath.archivePath.count() > 0 ? addedPath.archivePath : static_cast<Path &&>(addedPath.path.lastComponent());
             if (addedPath.isDir) {
-                auto it = addedPath.path.openDir(addedPath.openDirMode);
                 AddedSubDir subDir;
-                while (it->next()) {
-                    if (!it->isDir()) { // sub-file -> root + iterator path
-                        AddedFile item;
-                        item.path = static_cast<Path &&>(it->path());
-                        item.archivePath = rootArchivePath;
-                        item.archivePath.append(item.path);
-                        item.stat = it->fullPath().stat();
-                        subDir.files.push(static_cast<AddedFile &&>(item));
-                        itemsCount++;
-                    }
-                }
-                if (subDir.files.count() > 0) {
-                    subDir.path = static_cast<Path &&>(addedPath.path);
-                    _subDirs.push(static_cast<AddedSubDir &&>(subDir));
-                }
+                subDir.path = static_cast<Path &&>(addedPath.path);
+                subDir.archivePath = static_cast<Path &&>(rootArchivePath); // move, no longer needed
+                subDir.stat = subDir.path.stat();
+                _subDirs.push(static_cast<AddedSubDir &&>(subDir));
+                itemsCount++;
             } else {
                 AddedFile item;
                 item.path = static_cast<Path &&>(addedPath.path); // full path, move
@@ -397,37 +390,40 @@ namespace plzma {
         }
         _source.close();
         _source.itemIndex = index;
-        
-        for (plzma_size_t i = 0, n = _subDirs.count(); i < n; i++) {
-            const auto & subDir = _subDirs.at(i);
-            const UInt32 count = subDir.files.count();
-            if (index < count) {
-                const auto & file = subDir.files.at(index);
-                _source.archivePath = file.archivePath;
-                Path fullPath = subDir.path;
-                fullPath.append(file.path);
-                _source.path = static_cast<Path &&>(fullPath);
-                _source.stat = file.stat;
-                return S_OK;
-            }
-            index -= count;
+
+        UInt32 count = _subDirs.count();
+
+        if (index < count) {
+            const auto & subDir = _subDirs.at(index);
+            _source.archivePath = subDir.archivePath;
+            _source.path = subDir.path;
+            _source.stat = subDir.stat;
+            _source.isDir = true;
+            return  S_OK;
         }
-        
-        UInt32 count = _files.count();
+
+        index -= count;
+
+        count = _files.count();
+
         if (index < count) {
             const auto & file = _files.at(index);
             _source.path = file.path;
             _source.archivePath = file.archivePath;
             _source.stat = file.stat;
+            _source.isDir = false;
             return S_OK;
         }
+
         index -= count;
-        
+
         count = _streams.count();
+
         if (index < count) {
             auto & stream = _streams.at(index);
             HRESULT res = S_OK;
             _source.stream = stream.stream;
+            _source.isDir = false;
             _source.archivePath = stream.archivePath;
             if (stream.stat.size() == 0) {
                 stream.stream->open();
@@ -589,18 +585,12 @@ namespace plzma {
             return false;
         }
         
-        size_t errorNumber = 0;
-        if (itemsCount > 1 && _type == plzma_file_type_xz) {
-            errorNumber = 1;
-        } else if (itemsCount >= UINT32_MAX) {
-            errorNumber = 2;
-        }
-        if (errorNumber) {
+        if (itemsCount >= UINT32_MAX) {
             Exception exception(plzma_error_code_invalid_arguments, nullptr, __FILE__, __LINE__);
             char reason[128];
             snprintf(reason, 128, "The number of items: %llu", static_cast<unsigned long long>(itemsCount));
             exception.setReason(reason, nullptr);
-            exception.setWhat(errorNumber == 1 ? "The 'xz' type supports only one item." : "The number of items is greater then supported.", nullptr);
+            exception.setWhat("The number of items is greater then supported.", nullptr);
             throw exception;
         }
         
@@ -961,15 +951,14 @@ void plzma_encoder_set_should_store_posix_attributes(plzma_encoder * LIBPLZMA_NO
 
 void plzma_encoder_add_path(plzma_encoder * LIBPLZMA_NONNULL encoder,
                             const plzma_path * LIBPLZMA_NONNULL path,
-                            const plzma_open_dir_mode_t open_dir_mode,
                             const plzma_path * LIBPLZMA_NULLABLE archive_path) {
     if (encoder->exception || path->exception || (archive_path && archive_path->exception)) return;
     try {
         if (archive_path) {
-            static_cast<EncoderImpl *>(encoder->object)->add(*static_cast<const Path *>(path->object), open_dir_mode,
+            static_cast<EncoderImpl *>(encoder->object)->add(*static_cast<const Path *>(path->object),
                                                              *static_cast<const Path *>(archive_path->object));
         } else {
-            static_cast<EncoderImpl *>(encoder->object)->add(*static_cast<const Path *>(path->object), open_dir_mode);
+            static_cast<EncoderImpl *>(encoder->object)->add(*static_cast<const Path *>(path->object));
         }
     LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH(encoder)
 }

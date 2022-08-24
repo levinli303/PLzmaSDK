@@ -75,7 +75,6 @@ namespace plzma {
         struct AddedPath final {
             Path path;
             Path archivePath;
-            plzma_open_dir_mode_t openDirMode = 0;
             bool isDir = false;
         };
         struct AddedFile final {
@@ -85,7 +84,8 @@ namespace plzma {
         };
         struct AddedSubDir final {
             Path path;
-            Vector<AddedFile> files;
+            Path archivePath;
+            Stat stat;
         };
         struct AddedStream final {
             SharedPtr<InStreamBase> stream;
@@ -104,6 +104,7 @@ namespace plzma {
             SharedPtr<InStreamBase> stream;
             Stat stat;
             UInt32 itemIndex;
+            bool isDir;
             void close() {
                 if (stream) {
                     stream->close();
@@ -158,7 +159,7 @@ namespace plzma {
         virtual void setPassword(const wchar_t * password);
         virtual void setPassword(const char * password);
         virtual void setProgressDelegate(ProgressDelegate * delegate);
-        virtual void add(const Path & path, const plzma_open_dir_mode_t openDirMode = 0, const Path & archivePath = Path());
+        virtual void add(const Path & path, const Path & archivePath = Path());
         virtual void add(const SharedPtr<InStream> & stream, const Path & archivePath);
         virtual bool open();
         virtual void abort();
