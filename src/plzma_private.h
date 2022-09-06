@@ -35,7 +35,7 @@
 
 // Mark of the libplzma build.
 // This definition uses by the patched, original [LZMA SDK] via 'StdAfx.h' files in Win env.
-#ifndef LIBPLZMA
+#if !defined(LIBPLZMA)
 #define LIBPLZMA 1
 #endif
 
@@ -105,10 +105,6 @@ typedef void* HANDLE;
 #define DWORD_SIZE 4
 typedef uint32_t DWORD;
 #endif
-
-//#if !defined(BOOL)
-//#define BOOL int
-//#endif
 
 #if !defined(TRUE)
 #define TRUE 1
