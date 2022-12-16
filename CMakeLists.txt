@@ -320,6 +320,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Archive/Wim/WimIn.h
   src/CPP/7zip/Archive/DllExports2.h
   src/CPP/7zip/Archive/HandlerCont.h
+  src/CPP/7zip/Archive/HfsHandler.h
   src/CPP/7zip/Archive/IArchive.h
   src/CPP/7zip/Archive/StdAfx.h
   src/CPP/7zip/Archive/XzHandler.h
