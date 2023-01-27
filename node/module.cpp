@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2022 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -88,13 +88,13 @@ try { \
 
 
 #define NPLZMA_THROW_ARG_TYPE_ERROR_RET(ISOLATE, PROP) \
-static const char * ecsutf8 = "Unsupported argument type or its value for '" PROP "' property/method."; \
+static const char * ecsutf8 = "Unsupported argument type or value for '" PROP "' property/method."; \
 ISOLATE->ThrowException(Exception::TypeError(String::NewFromUtf8(ISOLATE, ecsutf8).ToLocalChecked())); \
 return; \
 
 
 #define NPLZMA_THROW_ARG1_TYPE_ERROR_RET(ISOLATE, FORMT, ARG1) \
-static const char * ecsutf8Format = "Unsupported argument type or it's value for '" FORMT "' property/method."; \
+static const char * ecsutf8Format = "Unsupported argument type or value for '" FORMT "' property/method."; \
 char ecsutf8[128] = { 0 }; \
 snprintf(ecsutf8, 128, ecsutf8Format, ARG1); \
 ISOLATE->ThrowException(Exception::TypeError(String::NewFromUtf8(ISOLATE, ecsutf8).ToLocalChecked())); \

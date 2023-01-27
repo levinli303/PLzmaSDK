@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2022 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -218,7 +218,7 @@ const char * LIBPLZMA_NONNULL plzma_version(void) {
 #if defined(LIBPLZMA_HAVE_STD)
     " : std"
 #endif
-
+    
 #if defined(RTTI_ENABLED)
     " : rtti"
 #elif defined(LIBPLZMA_NO_CPP_RTTI)
@@ -235,7 +235,7 @@ const char * LIBPLZMA_NONNULL plzma_version(void) {
     " : " __TIME__
 #endif
 #endif
-
+    
 #if defined(_MSC_FULL_VER)
     " : " LIBPLZMA_TOSTRING(_MSC_FULL_VER)
 #elif defined(_MSC_VER)

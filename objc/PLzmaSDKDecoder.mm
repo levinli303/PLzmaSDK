@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2022 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -51,13 +51,12 @@
 
 - (nonnull NSArray<PLzmaSDKItem *> *) items {
     PLZMASDKOBJC_TRY
-    const auto itemsArray = _decoder->items();
+    auto itemsArray = _decoder->items();
     if (itemsArray) {
         const plzma_size_t itemsCount = itemsArray->count();
         NSMutableArray * items = [[NSMutableArray alloc] initWithCapacity:itemsCount];
         for (plzma_size_t itemIndex = 0; itemIndex < itemsCount; itemIndex++) {
-            auto item = itemsArray->at(itemIndex);
-            [items addObject:[[PLzmaSDKItem alloc] initWithItemM:&item]];
+            [items addObject:[[PLzmaSDKItem alloc] initWithItemM:&itemsArray->at(itemIndex)]];
         }
         return items;
     }
