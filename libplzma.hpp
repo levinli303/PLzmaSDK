@@ -658,6 +658,7 @@ namespace plzma {
         uint64_t _size = 0;
         uint64_t _packSize = 0;
         time_t _creationTime = 0;
+        time_t _changeTime = 0;
         time_t _accessTime = 0;
         time_t _modificationTime = 0;
         uint32_t _crc32 = 0;
@@ -702,7 +703,11 @@ namespace plzma {
         /// @return The creation time of the item. Unix timestamp.
         time_t creationTime() const noexcept;
         
+
+        /// @return The creation time of the item. Unix timestamp.
+        time_t changeTime() const noexcept;
         
+
         /// @return The last access time of the item. Unix timestamp.
         time_t accessTime() const noexcept;
         
@@ -755,6 +760,11 @@ namespace plzma {
         void setCreationTime(const time_t time) noexcept;
         
         
+        /// @brief Updates change time of the item.
+        /// @param time The unix timestamp.
+        void setChangeTime(const time_t time) noexcept;
+
+
         /// @brief Updates last access time of the item.
         /// @param time The unix timestamp.
         void setAccessTime(const time_t time) noexcept;
@@ -798,6 +808,7 @@ namespace plzma {
     private:
         uint64_t _size = 0;
         time_t _lastAccess = 0;
+        time_t _lastChange = 0;
         time_t _lastModification = 0;
         time_t _creation = 0;
         uint16_t _permissions = 0;
@@ -810,6 +821,7 @@ namespace plzma {
         uint64_t size() const noexcept;
         time_t lastAccess() const noexcept;
         time_t lastModification() const noexcept;
+        time_t lastChange() const noexcept;
         time_t creation() const noexcept;
         bool hasPermissions() const noexcept;
         uint16_t permissions() const noexcept;
@@ -819,6 +831,7 @@ namespace plzma {
         void setSize(const uint64_t size) noexcept;
         void setLastAccess(const time_t time) noexcept;
         void setLastModification(const time_t time) noexcept;
+        void setLastChange(const time_t time) noexcept;
         void setCreation(const time_t time) noexcept;
         void setPermissions(const uint16_t permission) noexcept;
         void setIsSymbolicLink(bool symbolicLink) noexcept;

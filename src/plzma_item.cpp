@@ -57,6 +57,10 @@ namespace plzma {
         return _creationTime;
     }
     
+    time_t Item::changeTime() const noexcept {
+        return _changeTime;
+    }
+
     time_t Item::accessTime() const noexcept {
         return _accessTime;
     }
@@ -105,6 +109,10 @@ namespace plzma {
         _creationTime = time;
     }
     
+    void Item::setChangeTime(const time_t time) noexcept {
+        _changeTime = time;
+    }
+
     void Item::setAccessTime(const time_t time) noexcept {
         _accessTime = time;
     }
@@ -201,6 +209,10 @@ uint32_t plzma_item_crc32(const plzma_item * LIBPLZMA_NONNULL item) {
     return item->exception ? 0 : static_cast<const Item *>(item->object)->crc32();
 }
 
+time_t plzma_item_change_time(const plzma_item * LIBPLZMA_NONNULL item) {
+    return item->exception ? 0 : static_cast<const Item *>(item->object)->changeTime();
+}
+
 time_t plzma_item_creation_time(const plzma_item * LIBPLZMA_NONNULL item) {
     return item->exception ? 0 : static_cast<const Item *>(item->object)->creationTime();
 }
@@ -255,6 +267,10 @@ void plzma_item_set_crc32(plzma_item * LIBPLZMA_NONNULL item, const uint32_t crc
 
 void plzma_item_set_creation_time(plzma_item * LIBPLZMA_NONNULL item, const time_t time) {
     if (!item->exception) { static_cast<Item *>(item->object)->setCreationTime(time); }
+}
+
+void plzma_item_set_change_time(plzma_item * LIBPLZMA_NONNULL item, const time_t time) {
+    if (!item->exception) { static_cast<Item *>(item->object)->setChangeTime(time); }
 }
 
 void plzma_item_set_access_time(plzma_item * LIBPLZMA_NONNULL item, const time_t time) {

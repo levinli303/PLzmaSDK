@@ -57,6 +57,11 @@ namespace plzma {
         }
 
         prop.Clear();
+        if (archive->GetProperty(index, kpidChangeTime, &prop) == S_OK && prop.vt == VT_FILETIME) {
+            stat.setLastChange(FILETIMEToUnixTime(prop.filetime));
+        }
+
+        prop.Clear();
         if (archive->GetProperty(index, kpidPosixAttrib, &prop) == S_OK && prop.vt != VT_EMPTY) {
             auto mode = PROPVARIANTGetUInt64(prop);
             stat.setPermissions(static_cast<uint16_t>(mode & 0777));

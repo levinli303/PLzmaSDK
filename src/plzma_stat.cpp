@@ -44,6 +44,10 @@ namespace plzma {
         return _lastModification;
     }
 
+    time_t Stat::lastChange() const noexcept {
+        return _lastChange;
+    }
+
     time_t Stat::creation() const noexcept {
         return _creation;
     }
@@ -74,6 +78,10 @@ namespace plzma {
 
     void Stat::setLastModification(time_t lastModification) noexcept {
         _lastModification = lastModification;
+    }
+
+    void Stat::setLastChange(time_t lastChange) noexcept {
+        _lastChange = lastChange;
     }
 
     void Stat::setCreation(time_t creation) noexcept {
@@ -167,6 +175,10 @@ time_t plzma_stat_last_modification(const plzma_stat * LIBPLZMA_NONNULL stat) {
     return stat->exception ? 0 : static_cast<const Stat *>(stat->object)->lastModification();
 }
 
+time_t plzma_stat_last_change(const plzma_stat * LIBPLZMA_NONNULL stat) {
+    return stat->exception ? 0 : static_cast<const Stat *>(stat->object)->lastChange();
+}
+
 time_t plzma_stat_creation(const plzma_stat * LIBPLZMA_NONNULL stat) {
     return stat->exception ? 0 : static_cast<const Stat *>(stat->object)->creation();
 }
@@ -205,6 +217,10 @@ void plzma_stat_set_last_modification(plzma_stat * LIBPLZMA_NONNULL stat, const 
 
 void plzma_stat_set_creation(plzma_stat * LIBPLZMA_NONNULL stat, const time_t creation) {
     if (!stat->exception) { static_cast<Stat *>(stat->object)->setCreation(creation); }
+}
+
+void plzma_stat_set_last_change(plzma_stat * LIBPLZMA_NONNULL stat, const time_t last_change) {
+    if (!stat->exception) { static_cast<Stat *>(stat->object)->setLastChange(last_change); }
 }
 
 void plzma_stat_set_permissions(plzma_stat * LIBPLZMA_NONNULL stat, const uint16_t permissions) {

@@ -778,6 +778,10 @@ LIBPLZMA_C_API(uint32_t) plzma_item_crc32(const plzma_item * LIBPLZMA_NONNULL it
 LIBPLZMA_C_API(time_t) plzma_item_creation_time(const plzma_item * LIBPLZMA_NONNULL item);
 
 
+/// @return The change time of the item. Unix timestamp.
+LIBPLZMA_C_API(time_t) plzma_item_change_time(const plzma_item * LIBPLZMA_NONNULL item);
+
+
 /// @return The last access time of the item. Unix timestamp.
 LIBPLZMA_C_API(time_t) plzma_item_access_time(const plzma_item * LIBPLZMA_NONNULL item);
 
@@ -830,6 +834,11 @@ LIBPLZMA_C_API(void) plzma_item_set_crc32(plzma_item * LIBPLZMA_NONNULL item, co
 LIBPLZMA_C_API(void) plzma_item_set_creation_time(plzma_item * LIBPLZMA_NONNULL item, const time_t time);
 
 
+/// @brief Updates change time of the item.
+/// @param time The unix timestamp.
+LIBPLZMA_C_API(void) plzma_item_set_change_time(plzma_item * LIBPLZMA_NONNULL item, const time_t time);
+
+
 /// @brief Updates last access time of the item.
 /// @param time The unix timestamp.
 LIBPLZMA_C_API(void) plzma_item_set_access_time(plzma_item * LIBPLZMA_NONNULL item, const time_t time);
@@ -859,6 +868,7 @@ LIBPLZMA_C_API(plzma_stat) plzma_stat_create(void);
 LIBPLZMA_C_API(uint64_t) plzma_stat_size(const plzma_stat * LIBPLZMA_NONNULL stat);
 LIBPLZMA_C_API(time_t) plzma_stat_last_access(const plzma_stat * LIBPLZMA_NONNULL stat);
 LIBPLZMA_C_API(time_t) plzma_stat_last_modification(const plzma_stat * LIBPLZMA_NONNULL stat);
+LIBPLZMA_C_API(time_t) plzma_stat_last_change(const plzma_stat * LIBPLZMA_NONNULL stat);
 LIBPLZMA_C_API(time_t) plzma_stat_creation(const plzma_stat * LIBPLZMA_NONNULL stat);
 LIBPLZMA_C_API(bool) plzma_stat_has_permissions(const plzma_stat * LIBPLZMA_NONNULL stat);
 LIBPLZMA_C_API(uint16_t) plzma_stat_permissions(const plzma_stat * LIBPLZMA_NONNULL stat);
@@ -868,6 +878,7 @@ LIBPLZMA_C_API(const wchar_t * LIBPLZMA_NULLABLE) plzma_stat_symbolic_link_wide_
 LIBPLZMA_C_API(void) plzma_stat_set_size(plzma_stat * LIBPLZMA_NONNULL stat, const uint64_t size);
 LIBPLZMA_C_API(void) plzma_stat_set_last_access(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
 LIBPLZMA_C_API(void) plzma_stat_set_last_modification(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
+LIBPLZMA_C_API(void) plzma_stat_set_last_change(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
 LIBPLZMA_C_API(void) plzma_stat_set_creation(plzma_stat * LIBPLZMA_NONNULL stat, const time_t time);
 LIBPLZMA_C_API(void) plzma_stat_set_permissions(plzma_stat * LIBPLZMA_NONNULL stat, const uint16_t permissions);
 LIBPLZMA_C_API(void) plzma_stat_set_is_symbolic_link(plzma_stat * LIBPLZMA_NONNULL stat, const bool is_symbolic_link);

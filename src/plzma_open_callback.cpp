@@ -213,6 +213,7 @@ namespace plzma {
 
             item->setSize(stat.size());
             item->setCreationTime(stat.creation());
+            item->setChangeTime(stat.lastChange());
             item->setAccessTime(stat.lastAccess());
             item->setModificationTime(stat.lastModification());
             if (stat.hasPermissions()) {
