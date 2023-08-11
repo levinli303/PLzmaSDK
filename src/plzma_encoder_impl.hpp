@@ -160,7 +160,7 @@ namespace plzma {
         virtual void setPassword(const wchar_t * password) override final;
         virtual void setPassword(const char * password) override final;
         virtual void setProgressDelegate(ProgressDelegate * delegate) override final;
-        virtual void add(const Path & path, const plzma_open_dir_mode_t openDirMode = 0, const Path & archivePath = Path()) override final;
+        virtual void add(const Path & path, const Path & archivePath = Path()) override final;
         virtual void add(const SharedPtr<InStream> & stream, const Path & archivePath) override final;
         virtual bool open() override final;
         virtual void abort() override final;
