@@ -32,12 +32,12 @@ set(CMAKE_CXX_STANDARD 11)
 set(PACKAGE "libplzma")
 set(CPACK_PACKAGE_NAME "${PACKAGE}")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "2")
-set(CPACK_PACKAGE_VERSION_PATCH "5")
+set(CPACK_PACKAGE_VERSION_MINOR "3")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
 set(CPACK_PACKAGE_VENDOR "olehkulykov@gmail.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PACKAGE} ${PACKAGE_VERSION}")
-set(SOVERSION "1.2.5")
+set(SOVERSION "1.3.0")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
 set(VERSION "${CPACK_PACKAGE_VERSION}")
 
@@ -236,6 +236,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/C/7zFile.h
   src/C/7zTypes.h
   src/C/7zVersion.h
+  src/C/7zWindows.h
   src/C/Aes.h
   src/C/Alloc.h
   src/C/Bcj2.h
@@ -264,6 +265,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/C/Sha1.h
   src/C/Sha256.h
   src/C/Sort.h
+  src/C/SwapBytes.h
   src/C/Threads.h
   src/C/Xz.h
   src/C/XzCrc64.h
@@ -405,6 +407,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/MyVector.h
   src/CPP/Common/MyWindows.h
   src/CPP/Common/MyXml.h
+  src/CPP/Common/NewHandler.h
   src/CPP/Common/StdAfx.h
   src/CPP/Common/StdInStream.h
   src/CPP/Common/StdOutStream.h
@@ -464,6 +467,7 @@ set(LIBPLZMA_SOURCES
   src/C/Sha256.c
   src/C/Sha256Opt.c
   src/C/Sort.c
+  src/C/SwapBytes.c
   src/C/Threads.c
   src/C/Xz.c
   src/C/XzCrc64.c
@@ -608,6 +612,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/Common/MyString.cpp
   src/CPP/Common/MyWindows.cpp
   src/CPP/Common/MyXml.cpp
+  src/CPP/Common/NewHandler.cpp
   src/CPP/Common/Sha256Reg.cpp
   src/CPP/Common/StringConvert.cpp
   src/CPP/Common/StringToInt.cpp
@@ -712,6 +717,7 @@ source_group("C"
   src/C/7zStream.c
   src/C/7zTypes.h
   src/C/7zVersion.h
+  src/C/7zWindows.h
   src/C/Aes.c
   src/C/Aes.h
   src/C/AesOpt.c
@@ -767,8 +773,11 @@ source_group("C"
   src/C/Sha256.c
   src/C/Sha256.h
   src/C/Sha256Opt.c
+  src/C/Sort.c
   src/C/Sort.h
   src/C/Sort.c
+  src/C/SwapBytes.c
+  src/C/SwapBytes.h
   src/C/Threads.c
   src/C/Threads.h
   src/C/Xz.c
@@ -841,6 +850,8 @@ source_group("CPP/Common"
   src/CPP/Common/MyVector.h
   src/CPP/Common/MyWindows.cpp
   src/CPP/Common/MyWindows.h
+  src/CPP/Common/NewHandler.cpp
+  src/CPP/Common/NewHandler.h
   src/CPP/Common/Sha256Reg.cpp
   src/CPP/Common/StdAfx.h
   src/CPP/Common/StdInStream.h

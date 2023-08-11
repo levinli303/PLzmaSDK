@@ -51,7 +51,7 @@ namespace plzma {
     
     class ExtractCallback final :
         public IArchiveExtractCallback,
-        public IArchiveExtractCallbackMessage,
+        public IArchiveExtractCallbackMessage2,
         public ICryptoGetTextPassword,
         public ICryptoGetTextPassword2,
         public ICompressProgressInfo,
@@ -80,18 +80,27 @@ namespace plzma {
         LIBPLZMA_NON_COPYABLE_NON_MOVABLE(ExtractCallback)
         
     public:
-        MY_UNKNOWN_IMP4(IArchiveExtractCallbackMessage, ICryptoGetTextPassword, ICryptoGetTextPassword2, ICompressProgressInfo)
+        Z7_COM_UNKNOWN_IMP_4(IArchiveExtractCallbackMessage2, ICryptoGetTextPassword, ICryptoGetTextPassword2, ICompressProgressInfo)
         
-        INTERFACE_IArchiveExtractCallback(;)
-        INTERFACE_IArchiveExtractCallbackMessage(;)
+        // IProgress
+        STDMETHOD(SetTotal)(UInt64 total) override final;
+        STDMETHOD(SetCompleted)(const UInt64 *completeValue) override final;
         
-        STDMETHOD(SetRatioInfo)(const UInt64 * inSize, const UInt64 * outSize);
+        // IArchiveExtractCallback
+        STDMETHOD(GetStream)(UInt32 index, ISequentialOutStream **outStream, Int32 askExtractMode) override final;
+        STDMETHOD(PrepareOperation)(Int32 askExtractMode) override final;
+        STDMETHOD(SetOperationResult)(Int32 opRes) override final;
+        
+        // IArchiveExtractCallbackMessage2
+        STDMETHOD(ReportExtractResult)(UInt32 indexType, UInt32 index, Int32 opRes) override final;
+        
+        STDMETHOD(SetRatioInfo)(const UInt64 * inSize, const UInt64 * outSize) override final;;
         
         // ICryptoGetTextPassword
-        STDMETHOD(CryptoGetTextPassword)(BSTR * password);
+        STDMETHOD(CryptoGetTextPassword)(BSTR * password) override final;
         
         // ICryptoGetTextPassword2
-        STDMETHOD(CryptoGetTextPassword2)(Int32 * passwordIsDefined, BSTR * password);
+        STDMETHOD(CryptoGetTextPassword2)(Int32 * passwordIsDefined, BSTR * password) override final;
         
         void process(const Int32 mode, const SharedPtr<ItemArray> & items, const Path & path, const bool itemsFullPath = true);
         void process(const Int32 mode, const Path & path, const bool itemsFullPath = true);

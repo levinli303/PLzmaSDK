@@ -3,7 +3,7 @@
     {
       'target_name': 'plzmasdk',
       'defines': [
-        'LIBPLZMA_VERSION_BUILD=506',
+        'LIBPLZMA_VERSION_BUILD=548',
         'LIBPLZMA_SHARED=1',
         'LIBPLZMA_NO_C_BINDINGS=1',
         'LIBPLZMA_HAVE_STD=1'
@@ -37,6 +37,7 @@
         'src/C/Ppmd7Enc.c',
         'src/C/Sha256.c',
         'src/C/Sha256Opt.c',
+        'src/C/SwapBytes.c',
         'src/C/Threads.c',
         'src/C/Xz.c',
         'src/C/XzCrc64.c',
@@ -132,6 +133,7 @@
         'src/CPP/Common/UTFConvert.cpp',
         'src/CPP/Common/Wildcard.cpp',
         'src/CPP/Common/XzCrc64Reg.cpp',
+        'src/CPP/Common/NewHandler.cpp',
         'src/CPP/Windows/FileDir.cpp',
         'src/CPP/Windows/FileFind.cpp',
         'src/CPP/Windows/FileIO.cpp',
