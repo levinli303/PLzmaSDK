@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -535,9 +535,9 @@ namespace plzma {
         /// @return The pair: <length, number of unicode characters>
         static Pair<size_t, size_t> lengthMaxLength(const char * LIBPLZMA_NULLABLE str, const size_t maxLength) noexcept;
     };
-
+    
     class Stat;
-
+    
     /// @brief The \a Path class stores path's string presentation.
     ///
     /// During the manipulation of the path's string presentation:
@@ -602,8 +602,8 @@ namespace plzma {
         /// @brief Checks the path exists and has read-write permissions.
         /// @return \a true if path exists, readable and writable, otherwise \a false.
         bool readableAndWritable() const;
-
-
+        
+        
         /// @brief Provides the stat info of the path.
         /// @return The stat info of the path or empty/zero-filled struct if operation was failed.
         Stat stat() const;
@@ -617,7 +617,7 @@ namespace plzma {
         
         /// @brief Creates the directory at specific path.
         /// @param withIntermediates Create intermediate directories for each component or not.
-        /// @return The creation result of the directory.
+        /// @return The creation result of the directory or if directory already exists.
         bool createDir(const bool withIntermediates) const;
         
         
@@ -703,11 +703,11 @@ namespace plzma {
         /// @return The creation time of the item. Unix timestamp.
         time_t creationTime() const noexcept;
         
-
+        
         /// @return The creation time of the item. Unix timestamp.
         time_t changeTime() const noexcept;
         
-
+        
         /// @return The last access time of the item. Unix timestamp.
         time_t accessTime() const noexcept;
         
@@ -722,24 +722,24 @@ namespace plzma {
         
         /// @return Checks the item is directory or file.
         bool isDir() const noexcept;
-
-
+        
+        
         /// @return Checks the posix attributes of the file.
         bool hasPermissions() const noexcept;
-
-
+        
+        
         /// @return Checks the permissions of the file.
         uint16_t permissions() const noexcept;
-
-
+        
+        
         /// @return Checks if the file is a symbolic link.
         bool isSymbolicLink() const noexcept;
-
-
+        
+        
         /// @return the path that this item is linekd to.
         const String & symbolicLink() const noexcept;
-
-
+        
+        
         /// @brief Updates the size of the item.
         /// @param size The size in bytes.
         void setSize(const uint64_t size) noexcept;
@@ -763,8 +763,8 @@ namespace plzma {
         /// @brief Updates change time of the item.
         /// @param time The unix timestamp.
         void setChangeTime(const time_t time) noexcept;
-
-
+        
+        
         /// @brief Updates last access time of the item.
         /// @param time The unix timestamp.
         void setAccessTime(const time_t time) noexcept;
@@ -783,11 +783,11 @@ namespace plzma {
         void setIsDir(const bool dir) noexcept;
         
         void setPermissions(const uint16_t permission) noexcept;
-
+        
         void setIsSymbolicLink(bool symbolicLink) noexcept;
-
+        
         void setSymbolicLink(const String & symbolicLink) noexcept;
-
+        
         /// @brief Constructs the \a Item instance with path and index in the archive.
         /// @param path The associated item's path.
         /// @param index The index of the item in the archive.

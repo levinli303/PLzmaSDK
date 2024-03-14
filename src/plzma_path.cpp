@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -259,10 +259,10 @@ namespace plzma {
         if (withIntermediates) {
             if (_size > 0) {
 #if defined(LIBPLZMA_MSC)
-                const wchar_t * w = wide(); // syncWide
+                const wchar_t * w = wide(); // syncWide, changed '_size'
                 return createIntermediateDirs<wchar_t>(w, _size);
 #elif defined(LIBPLZMA_POSIX)
-                const char * c = utf8(); // syncUtf8
+                const char * c = utf8(); // syncUtf8, changed '_cslen'
                 return createIntermediateDirs<char>(c, _cslen);
 #endif
             }
@@ -279,14 +279,20 @@ namespace plzma {
 #if defined(LIBPLZMA_MSC)
         if (_size > 0) {
             wchar_t wmode[32] = { 0 }; // more than enough for a max mode: "w+b, ccs=UNICODE"
-            for (size_t i = 0, n = strlen(mode); ((i < n) && (i < 31)); i++) {
+            for (size_t i = 0, n = ::strlen(mode); ((i < n) && (i < 31)); i++) {
                 wmode[i] = static_cast<wchar_t>(mode[i]);
             }
+#if defined(HAVE__WFOPEN_S)
+            FILE * f = nullptr;
+            const errno_t err = ::_wfopen_s(&f, wide(), wmode);
+            return (err == 0) ? f : nullptr;
+#else
             return _wfopen(wide(), wmode);
+#endif // !HAVE__WFOPEN_S
         }
         return nullptr;
 #elif defined(LIBPLZMA_POSIX)
-        return (_size > 0) ? fopen(utf8(), mode) : nullptr;
+        return (_size > 0) ? ::fopen(utf8(), mode) : nullptr;
 #endif
     }
 
@@ -385,7 +391,7 @@ namespace plzma {
         Path path;
 #if defined(__APPLE__) && defined(_CS_DARWIN_USER_TEMP_DIR)
         char buff[PATH_MAX];
-        const size_t res = confstr(_CS_DARWIN_USER_TEMP_DIR, buff, PATH_MAX);
+        const size_t res = ::confstr(_CS_DARWIN_USER_TEMP_DIR, buff, PATH_MAX);
         if (res > 0 && res < PATH_MAX && initializeTmpPath<char>(buff, "libplzma", path)) {
             return path;
         }
@@ -393,18 +399,51 @@ namespace plzma {
 #if defined(LIBPLZMA_MSC)
         static const wchar_t * const wevs[4] = { L"TMPDIR", L"TEMPDIR", L"TEMP", L"TMP" };
         for (size_t i = 0; i < 4; i++) {
-            const wchar_t * p = _wgetenv(wevs[i]);
+#if defined(HAVE__WDUPENV_S)
+            wchar_t * p = nullptr;
+            size_t len = 0;
+            const errno_t err = ::_wdupenv_s(&p, &len, wevs[i]);
+            if ((err == 0) && p && initializeTmpPath<wchar_t>(p, L"libplzma", path)) {
+                ::free(p);
+                return path;
+            }
+            if (p) {
+                ::free(p);
+            }
+#else
+            const wchar_t * p = ::_wgetenv(wevs[i]);
             if (p && initializeTmpPath<wchar_t>(p, L"libplzma", path)) {
                 return path;
             }
+#endif // !HAVE__WDUPENV_S
         }
 #endif
         static const char * const cevs[4] = { "TMPDIR", "TEMPDIR", "TEMP", "TMP" };
         for (size_t i = 0; i < 4; i++) {
-            char * p = getenv(cevs[i]);
+#if defined(LIBPLZMA_MSC)
+#if defined(HAVE__DUPENV_S)
+            char * p = nullptr;
+            size_t len = 0;
+            const errno_t err = ::_dupenv_s(&p, &len, cevs[i]);
+            if ((err == 0) && p && initializeTmpPath<char>(p, "libplzma", path)) {
+                ::free(p);
+                return path;
+            }
+            if (p) {
+                ::free(p);
+            }
+#else
+            char * p = ::getenv(cevs[i]);
             if (p && initializeTmpPath<char>(p, "libplzma", path)) {
                 return path;
             }
+#endif // !HAVE__DUPENV_S
+#else
+            char * p = ::getenv(cevs[i]);
+            if (p && initializeTmpPath<char>(p, "libplzma", path)) {
+                return path;
+            }
+#endif
         }
 #if !defined(LIBPLZMA_OS_WINDOWS)
         if (initializeTmpPath<char>("/tmp", "libplzma", path)) {
@@ -589,4 +628,4 @@ void plzma_path_release(plzma_path * LIBPLZMA_NULLABLE path) {
     path->object = nullptr;
 }
 
-#endif // # !LIBPLZMA_NO_C_BINDINGS
+#endif // !LIBPLZMA_NO_C_BINDINGS

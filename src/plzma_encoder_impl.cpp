@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ namespace plzma {
     }
     
     // IProgress
-    STDMETHODIMP EncoderImpl::SetTotal(UInt64 size) {
+    STDMETHODIMP EncoderImpl::SetTotal(UInt64 size) throw() {
 #if defined(LIBPLZMA_NO_PROGRESS)
         return S_OK;
 #else
@@ -65,7 +65,7 @@ namespace plzma {
 #endif
     }
     
-    STDMETHODIMP EncoderImpl::SetCompleted(const UInt64 *completeValue) {
+    STDMETHODIMP EncoderImpl::SetCompleted(const UInt64 *completeValue) throw() {
 #if defined(LIBPLZMA_NO_PROGRESS)
         return S_OK;
 #else
@@ -74,7 +74,7 @@ namespace plzma {
     }
     
     // IUpdateCallback2
-    STDMETHODIMP EncoderImpl::GetUpdateItemInfo(UInt32 index, Int32 * newData, Int32 * newProperties, UInt32 * indexInArchive) {
+    STDMETHODIMP EncoderImpl::GetUpdateItemInfo(UInt32 index, Int32 * newData, Int32 * newProperties, UInt32 * indexInArchive) throw() {
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result != S_OK) {
@@ -105,7 +105,7 @@ namespace plzma {
         return S_OK;
     }
     
-    STDMETHODIMP EncoderImpl::GetProperty(UInt32 index, PROPID propID, PROPVARIANT * value) {
+    STDMETHODIMP EncoderImpl::GetProperty(UInt32 index, PROPID propID, PROPVARIANT * value) throw() {
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result != S_OK) {
@@ -169,7 +169,7 @@ namespace plzma {
         return S_OK;
     }
     
-    STDMETHODIMP EncoderImpl::GetStream(UInt32 index, ISequentialInStream ** inStream) {
+    STDMETHODIMP EncoderImpl::GetStream(UInt32 index, ISequentialInStream ** inStream) throw() {
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result != S_OK) {
@@ -212,7 +212,7 @@ namespace plzma {
         return S_OK;
     }
     
-    STDMETHODIMP EncoderImpl::SetOperationResult(Int32 operationResult) {
+    STDMETHODIMP EncoderImpl::SetOperationResult(Int32 operationResult) throw() {
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result == S_OK) {
@@ -244,16 +244,16 @@ namespace plzma {
         return S_OK;
     }
     
-    STDMETHODIMP EncoderImpl::GetVolumeSize(UInt32 index, UInt64 * size) {
+    STDMETHODIMP EncoderImpl::GetVolumeSize(UInt32 index, UInt64 * size) throw() {
         return S_OK; // unused
     }
     
-    STDMETHODIMP EncoderImpl::GetVolumeStream(UInt32 index, ISequentialOutStream ** volumeStream) {
+    STDMETHODIMP EncoderImpl::GetVolumeStream(UInt32 index, ISequentialOutStream ** volumeStream) throw() {
         return S_OK; // unused
     }
     
     // ICryptoGetTextPassword
-    STDMETHODIMP EncoderImpl::CryptoGetTextPassword(BSTR * password) {
+    STDMETHODIMP EncoderImpl::CryptoGetTextPassword(BSTR * password) throw() {
         if (hasOption(OptionRequirePassword)) {
             return getTextPassword(nullptr, password);
         }
@@ -261,7 +261,7 @@ namespace plzma {
     }
     
     // ICryptoGetTextPassword2
-    STDMETHODIMP EncoderImpl::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) {
+    STDMETHODIMP EncoderImpl::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) throw() {
         if (hasOption(OptionRequirePassword)) {
             return getTextPassword(passwordIsDefined, password);
         }

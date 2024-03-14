@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <limits.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -66,6 +67,7 @@
 #endif
 
 #elif defined(LIBPLZMA_POSIX)
+#include <sys/time.h>
 #include <dirent.h>
 #include <unistd.h>
 #else
@@ -89,10 +91,10 @@ namespace pathUtils {
     template<>
     inline bool pathExists(const wchar_t * LIBPLZMA_NONNULL path, bool * LIBPLZMA_NULLABLE isDir) noexcept {
 #if defined(LIBPLZMA_MSC)
-        if (_waccess(path, 0) == 0) {
+        if (::_waccess(path, 0) == 0) {
             if (isDir) {
                 struct _stat statbuf;
-                if ((_wstat(path, &statbuf) == 0) && (S_ISDIR(statbuf.st_mode))) {
+                if ((::_wstat(path, &statbuf) == 0) && (S_ISDIR(statbuf.st_mode))) {
                     *isDir = true;
                 } else {
                     *isDir = false;
@@ -112,10 +114,10 @@ namespace pathUtils {
     template<>
     inline bool pathExists(const char * LIBPLZMA_NONNULL path, bool * LIBPLZMA_NULLABLE isDir) noexcept {
 #if defined(LIBPLZMA_MSC)
-        if (_access(path, 0) == 0) {
+        if (::_access(path, 0) == 0) {
             if (isDir) {
                 struct _stat statbuf;
-                if ((_stat(path, &statbuf) == 0) && (S_ISDIR(statbuf.st_mode))) {
+                if ((::_stat(path, &statbuf) == 0) && (S_ISDIR(statbuf.st_mode))) {
                     *isDir = true;
                 } else {
                     *isDir = false;
@@ -124,10 +126,10 @@ namespace pathUtils {
             return true;
         }
 #elif defined(LIBPLZMA_POSIX)
-        if (access(path, F_OK) == 0) {
+        if (::access(path, F_OK) == 0) {
             if (isDir) {
                 struct stat statbuf;
-                if ((stat(path, &statbuf) == 0) && (S_ISDIR(statbuf.st_mode))) {
+                if ((::stat(path, &statbuf) == 0) && (S_ISDIR(statbuf.st_mode))) {
                     *isDir = true;
                 } else {
                     *isDir = false;
@@ -149,15 +151,17 @@ namespace pathUtils {
     inline Stat pathStat(const wchar_t * LIBPLZMA_NULLABLE path) noexcept {
         Stat t;
 #if defined(LIBPLZMA_MSC)
-        struct __stat64 statbuf;
-        if (path && _wstat64(path, &statbuf) == 0) {
-            t.setCreation(statbuf.st_ctime);
-            t.setLastAccess(statbuf.st_atime);
-            t.setLastModification(statbuf.st_mtime);
-            auto mode = statbuf.st_mode;
-            t.setPermissions(mode & 0777);
-            t.setIsSymbolicLink(false);
-            t.setSize(static_cast<uint64_t>(statbuf.st_size));
+        if (path) {
+            struct __stat64 statbuf;
+            if (::_wstat64(path, &statbuf) == 0) {
+                t.setCreation(statbuf.st_ctime);
+                t.setLastAccess(statbuf.st_atime);
+                t.setLastModification(statbuf.st_mtime);
+                auto mode = statbuf.st_mode;
+                t.setPermissions(mode & 0777);
+                t.setIsSymbolicLink(false);
+                t.setSize(static_cast<uint64_t>(statbuf.st_size));
+            }
         }
 #else
         assert(0);
@@ -171,28 +175,30 @@ namespace pathUtils {
 #if defined(LIBPLZMA_MSC)
         assert(0);
 #elif defined(LIBPLZMA_POSIX)
-        struct stat statbuf;
-        if (path && stat(path, &statbuf) == 0) {
-            t.setCreation(statbuf.st_ctime);
-            t.setLastAccess(statbuf.st_atime);
-            t.setLastModification(statbuf.st_mtime);
-            auto mode = statbuf.st_mode;
-            t.setPermissions(mode & 0777);
-            bool isSymbolicLink = S_ISLNK(mode);
-            t.setIsSymbolicLink(isSymbolicLink);
-            if (isSymbolicLink) {
-                ssize_t targetNameBufSize = statbuf.st_size + 1;
-                if (statbuf.st_size == 0)
-                    targetNameBufSize = PATH_MAX;
-                char* buf = (char *)malloc(targetNameBufSize);
-                ssize_t written = readlink(path, buf, targetNameBufSize);
-                if (written != -1) {
-                    buf[written] = '\0';
-                    t.setSymbolicLink(buf);
+        if (path) {
+            struct stat statbuf;
+            if (::stat(path, &statbuf) == 0) {
+                t.setCreation(statbuf.st_ctime);
+                t.setLastAccess(statbuf.st_atime);
+                t.setLastModification(statbuf.st_mtime);
+                auto mode = statbuf.st_mode;
+                t.setPermissions(mode & 0777);
+                bool isSymbolicLink = S_ISLNK(mode);
+                t.setIsSymbolicLink(isSymbolicLink);
+                if (isSymbolicLink) {
+                    ssize_t targetNameBufSize = statbuf.st_size + 1;
+                    if (statbuf.st_size == 0)
+                        targetNameBufSize = PATH_MAX;
+                    char* buf = (char *)malloc(targetNameBufSize);
+                    ssize_t written = readlink(path, buf, targetNameBufSize);
+                    if (written != -1) {
+                        buf[written] = '\0';
+                        t.setSymbolicLink(buf);
+                    }
+                    free(buf);
                 }
-                free(buf);
+                t.setSize(static_cast<uint64_t>(statbuf.st_size));
             }
-            t.setSize(static_cast<uint64_t>(statbuf.st_size));
         }
 #endif
         return t;
@@ -204,7 +210,7 @@ namespace pathUtils {
     template<>
     inline bool pathReadable(const wchar_t * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _waccess(path, 4) == 0;
+        return (::_waccess(path, 4) == 0);
 #else
         assert(0);
         return false;
@@ -214,9 +220,9 @@ namespace pathUtils {
     template<>
     inline bool pathReadable(const char * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _access(path, 4) == 0;
+        return (::_access(path, 4) == 0);
 #elif defined(LIBPLZMA_POSIX)
-        return access(path, R_OK) == 0;
+        return (::access(path, R_OK) == 0);
 #endif
     }
     
@@ -226,7 +232,7 @@ namespace pathUtils {
     template<>
     inline bool pathWritable(const wchar_t * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _waccess(path, 2) == 0;
+        return (::_waccess(path, 2) == 0);
 #else
         assert(0);
         return false;
@@ -236,9 +242,9 @@ namespace pathUtils {
     template<>
     inline bool pathWritable(const char * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _access(path, 2) == 0;
+        return (::_access(path, 2) == 0);
 #elif defined(LIBPLZMA_POSIX)
-        return access(path, W_OK) == 0;
+        return (::access(path, W_OK) == 0);
 #endif
     }
     
@@ -248,7 +254,7 @@ namespace pathUtils {
     template<>
     inline bool pathReadableAndWritable(const wchar_t * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _waccess(path, 6) == 0;
+        return (::_waccess(path, 6) == 0);
 #else
         assert(0);
         return false;
@@ -258,9 +264,9 @@ namespace pathUtils {
     template<>
     inline bool pathReadableAndWritable(const char * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _access(path, 6) == 0;
+        return (::_access(path, 6) == 0);
 #elif defined(LIBPLZMA_POSIX)
-        return access(path, R_OK | W_OK) == 0;
+        return (::access(path, R_OK | W_OK) == 0);
 #endif
     }
     
@@ -270,7 +276,7 @@ namespace pathUtils {
     template<>
     inline bool createSingleDir(const wchar_t * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _wmkdir(path) == 0;
+        return (::_wmkdir(path) == 0);
 #else
         assert(0);
         return false;
@@ -280,7 +286,7 @@ namespace pathUtils {
     template<>
     inline bool createSingleDir(const char * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _mkdir(path) == 0;
+        return (::_mkdir(path) == 0);
 #elif defined(LIBPLZMA_POSIX)
         const mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR |
         S_IRGRP |           S_IXGRP |
@@ -299,7 +305,7 @@ namespace pathUtils {
         //#define    S_IROTH        0000004        /* [XSI] R for other */
         //#define    S_IWOTH        0000002        /* [XSI] W for other */
         //#define    S_IXOTH        0000001        /* [XSI] X for other */
-        return mkdir(path, mode) == 0;
+        return (::mkdir(path, mode) == 0);
 #endif
     }
     
@@ -328,9 +334,11 @@ namespace pathUtils {
     
     template<typename T, const T PS = platformSeparator<T>(), const T AS = additionalSeparator<T>()>
     inline bool createIntermediateDirs(const T * LIBPLZMA_NONNULL path, const size_t len) {
-        bool isDir = false;
-        if (pathExists<T>(path, &isDir) && isDir) {
-            return true;
+        {
+            bool isDir = false;
+            if (pathExists<T>(path, &isDir)) {
+                return isDir;
+            }
         }
         RawHeapMemory pathCopy(sizeof(T) * (len + 1), plzma_erase_zero);
         const T * cs1 = path;
@@ -371,7 +379,7 @@ namespace pathUtils {
     template<>
     inline bool removeEmptyDir(const wchar_t * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _wrmdir(path) == 0;
+        return (::_wrmdir(path) == 0);
 #else
         assert(0);
         return false;
@@ -381,9 +389,9 @@ namespace pathUtils {
     template<>
     inline bool removeEmptyDir(const char * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _rmdir(path) == 0;
+        return (::_rmdir(path) == 0);
 #else
-        return rmdir(path) == 0;
+        return (::rmdir(path) == 0);
 #endif
     }
     
@@ -393,7 +401,7 @@ namespace pathUtils {
     template<>
     inline bool removeFile(const wchar_t * LIBPLZMA_NONNULL path) noexcept {
 #if defined(LIBPLZMA_MSC)
-        return _wremove(path) == 0;
+        return (::_wremove(path) == 0);
 #else
         assert(0);
         return false;
@@ -402,7 +410,7 @@ namespace pathUtils {
     
     template<>
     inline bool removeFile(const char * LIBPLZMA_NONNULL path) noexcept {
-        return remove(path) == 0;
+        return (::remove(path) == 0);
     }
     
     template<typename T>
@@ -557,7 +565,7 @@ namespace pathUtils {
             blen--;
         }
         if (alen == blen) {
-            return alen ? (memcmp(a, b, sizeof(T) * alen) == 0) : true;
+            return alen ? (::memcmp(a, b, sizeof(T) * alen) == 0) : true;
         }
         return false;
     }
@@ -569,7 +577,7 @@ namespace pathUtils {
         RAIIFindHANDLE() = default;
         ~RAIIFindHANDLE() {
             if (handle != INVALID_HANDLE_VALUE) {
-                FindClose(handle);
+                ::FindClose(handle);
             }
         }
     };
@@ -582,7 +590,7 @@ namespace pathUtils {
         RAIIDIR() = default;
         ~RAIIDIR() {
             if (dir) {
-                closedir(dir);
+                ::closedir(dir);
             }
         }
     };
@@ -606,5 +614,7 @@ namespace pathUtils {
     
 } // namespace plzma
 } // namespace pathUtils
+
+//#include <CoreFoundation/CoreFoundation.h>
 
 #endif // !__PLZMA_PATH_UTILS_HPP__

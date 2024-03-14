@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ namespace plzma {
     
     using namespace NArchive::NExtract;
     
-    STDMETHODIMP ExtractCallback::ReportExtractResult(UInt32 indexType, UInt32 index, Int32 opRes) {
+    STDMETHODIMP ExtractCallback::ReportExtractResult(UInt32 indexType, UInt32 index, Int32 opRes) throw() {
 #if defined(LIBPLZMA_THREAD_UNSAFE)
         return _result;
 #else
@@ -50,7 +50,7 @@ namespace plzma {
 #endif
     }
     
-    STDMETHODIMP ExtractCallback::SetRatioInfo(const UInt64 * inSize, const UInt64 * outSize) {
+    STDMETHODIMP ExtractCallback::SetRatioInfo(const UInt64 * inSize, const UInt64 * outSize) throw() {
 #if defined(LIBPLZMA_THREAD_UNSAFE)
         return _result;
 #else
@@ -60,7 +60,7 @@ namespace plzma {
 #endif
     }
     
-    STDMETHODIMP ExtractCallback::SetTotal(UInt64 size) {
+    STDMETHODIMP ExtractCallback::SetTotal(UInt64 size) throw() {
 #if defined(LIBPLZMA_NO_PROGRESS)
         return S_OK;
 #else
@@ -68,7 +68,7 @@ namespace plzma {
 #endif
     }
     
-    STDMETHODIMP ExtractCallback::SetCompleted(const UInt64 * completeValue) {
+    STDMETHODIMP ExtractCallback::SetCompleted(const UInt64 * completeValue) throw() {
 #if defined(LIBPLZMA_NO_PROGRESS)
         return S_OK;
 #else
@@ -76,12 +76,12 @@ namespace plzma {
 #endif
     }
     
-    STDMETHODIMP ExtractCallback::CryptoGetTextPassword(BSTR * password) {
+    STDMETHODIMP ExtractCallback::CryptoGetTextPassword(BSTR * password) throw() {
         _passwordRequested = true;
         return getTextPassword(nullptr, password);
     }
     
-    STDMETHODIMP ExtractCallback::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) {
+    STDMETHODIMP ExtractCallback::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) throw() {
         _passwordRequested = true;
         return getTextPassword(passwordIsDefined, password);
     }
@@ -108,16 +108,19 @@ namespace plzma {
     void ExtractCallback::getExtractStream(const UInt32 index, ISequentialOutStream ** outStream) {
         if (_itemsMap) {
             const auto * pair = _itemsMap->bsearch<plzma_size_t>(index);
-            if (pair && pair->first && pair->first->index() == index) {
-                auto base = pair->second.cast<OutStreamBase>();
-                OutStreamBase * stream = base.get();
-                _currentOutStream = stream;
+            if (pair) {
+                const auto & item = pair->first;
+                if (item && item->index() == index) {
+                    auto base = pair->second.cast<OutStreamBase>();
+                    OutStreamBase * stream = base.get();
+                    _currentOutStream = stream;
 #if !defined(LIBPLZMA_NO_PROGRESS)
-                _progress->setPath(pair->first->path());
+                    _progress->setPath(pair->first->path());
 #endif
-                stream->AddRef(); // for '*outStream'
-                *outStream = stream;
-                return;
+                    stream->AddRef(); // for '*outStream'
+                    *outStream = stream;
+                    return;
+                }
             }
             throw Exception(plzma_error_code_internal, "Can't find maped item/stream.", __FILE__, __LINE__);
         }
@@ -161,8 +164,7 @@ namespace plzma {
                 throw exception;
             }
         }
-        fullPath.append(itemName);
-
+        
         OutFileStream * stream = new OutFileStream(static_cast<Path &&>(fullPath), GetArchiveItemStat(_archive, index));
         _currentOutStream = stream;
 #if !defined(LIBPLZMA_NO_PROGRESS)
@@ -172,7 +174,7 @@ namespace plzma {
         *outStream = stream;
     }
     
-    STDMETHODIMP ExtractCallback::GetStream(UInt32 index, ISequentialOutStream ** outStream, Int32 askExtractMode) {
+    STDMETHODIMP ExtractCallback::GetStream(UInt32 index, ISequentialOutStream ** outStream, Int32 askExtractMode) throw() {
         *outStream = nullptr;
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
@@ -211,7 +213,7 @@ namespace plzma {
         return S_OK;
     }
     
-    STDMETHODIMP ExtractCallback::PrepareOperation(Int32 askExtractMode) {
+    STDMETHODIMP ExtractCallback::PrepareOperation(Int32 askExtractMode) throw() {
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_result == S_OK && _currentOutStream) {
@@ -235,7 +237,7 @@ namespace plzma {
         return S_OK;
     }
     
-    STDMETHODIMP ExtractCallback::SetOperationResult(Int32 operationResult) {
+    STDMETHODIMP ExtractCallback::SetOperationResult(Int32 operationResult) throw() {
         try {
             LIBPLZMA_LOCKGUARD(lock, _mutex)
             if (_currentOutStream) {

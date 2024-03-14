@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ namespace plzma {
     
     void RawHeapMemory::erase(const plzma_erase eraseType, const size_t size) noexcept {
         if (_memory && size > 0 && eraseType == plzma_erase_zero) {
-            memset(_memory, 0, size);
+            ::memset(_memory, 0, size);
         }
     }
     

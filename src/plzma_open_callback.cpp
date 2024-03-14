@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2023 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2024 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,20 +37,20 @@
 
 namespace plzma {
     
-    STDMETHODIMP OpenCallback::SetTotal(const UInt64 * files, const UInt64 * bytes) {
+    STDMETHODIMP OpenCallback::SetTotal(const UInt64 * files, const UInt64 * bytes) throw() {
         return S_OK; // unused
     }
     
-    STDMETHODIMP OpenCallback::SetCompleted(const UInt64 * files, const UInt64 * bytes) {
+    STDMETHODIMP OpenCallback::SetCompleted(const UInt64 * files, const UInt64 * bytes) throw() {
         return S_OK; // unused
     }
-    
-    STDMETHODIMP OpenCallback::CryptoGetTextPassword(BSTR * password) {
+
+    STDMETHODIMP OpenCallback::CryptoGetTextPassword(BSTR * password) throw() {
         _passwordRequested = true;
         return getTextPassword(nullptr, password);
     }
     
-    STDMETHODIMP OpenCallback::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) {
+    STDMETHODIMP OpenCallback::CryptoGetTextPassword2(Int32 * passwordIsDefined, BSTR * password) throw() {
         _passwordRequested = true;
         return getTextPassword(passwordIsDefined, password);
     }
