@@ -815,7 +815,7 @@ Z7_COM7F_IMF(CHandler::GetArchiveProperty(PROPID propID, PROPVARIANT *value))
 
       bool zlib = false;
       bool marker = false;
-      int algo = -1;
+      Int32 algo = -1;
 
       FOR_VECTOR (i, _extents)
       {
@@ -829,7 +829,7 @@ Z7_COM7F_IMF(CHandler::GetArchiveProperty(PROPID propID, PROPVARIANT *value))
         {
           if (h.algo == 1)
             zlib = true;
-          else if (algo != (int)h.algo)
+          else if (algo != h.algo)
           {
             s.Add_Space_if_NotEmpty();
             s.Add_UInt32(h.algo);
@@ -1525,7 +1525,6 @@ REGISTER_ARC_I(
   NULL)
 
 }}
-
 #if defined(LIBPLZMA_USING_REGISTRATORS)
 uint64_t plzma_registrator_28(void) {
     return NArchive::NVmdk::g_ArcInfo.Flags;

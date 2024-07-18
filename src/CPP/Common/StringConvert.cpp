@@ -371,7 +371,6 @@ void MultiByteToUnicodeString2(UString &dest, const AString &src, UINT codePage)
   }
 }
 
-#if !defined(LIBPLZMA)
 static void UnicodeStringToMultiByte2_Native(AString &dest, const UString &src)
 {
   dest.Empty();
@@ -390,7 +389,6 @@ static void UnicodeStringToMultiByte2_Native(AString &dest, const UString &src)
   }
   dest.ReleaseBuf_SetEnd(0);
 }
-#endif // !LIBPLZMA
 
 
 static void UnicodeStringToMultiByte2(AString &dest, const UString &src2, UINT codePage, char defaultChar, bool &defaultCharWasUsed)
@@ -553,7 +551,6 @@ AString UnicodeStringToMultiByte(const UString &src, UINT codePage)
 // #define A_to_U(a, b, c)  MultiByteToUnicodeString2_Native(a, b)
 #endif
 
-#if !defined(LIBPLZMA)
 bool IsNativeUTF8()
 {
   UString u;
@@ -578,7 +575,6 @@ bool IsNativeUTF8()
   }
   return true;
 }
-#endif // !LIBPLZMA
 
 #endif
 

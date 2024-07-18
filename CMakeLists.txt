@@ -340,6 +340,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Archive/7z/StdAfx.h
   src/CPP/7zip/Archive/Common/CoderMixer2.h
   src/CPP/7zip/Archive/Common/DummyOutStream.h
+  src/CPP/7zip/Archive/Common/FindSignature.h
   src/CPP/7zip/Archive/Common/HandlerOut.h
   src/CPP/7zip/Archive/Common/InStreamWithCRC.h
   src/CPP/7zip/Archive/Common/ItemNameUtils.h
@@ -427,6 +428,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/Common.h
   src/CPP/Common/Common0.h
   src/CPP/Common/ComTry.h
+  src/CPP/Common/C_FileIO.h
   src/CPP/Common/Defs.h
   src/CPP/Common/DynamicBuffer.h
   src/CPP/Common/IntToString.h
@@ -547,6 +549,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/ArchiveExports.cpp
   src/CPP/7zip/Archive/Common/CoderMixer2.cpp
   src/CPP/7zip/Archive/Common/DummyOutStream.cpp
+  src/CPP/7zip/Archive/Common/FindSignature.cpp
   src/CPP/7zip/Archive/Common/HandlerOut.cpp
   src/CPP/7zip/Archive/Common/InStreamWithCRC.cpp
   src/CPP/7zip/Archive/Common/ItemNameUtils.cpp
@@ -642,6 +645,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Crypto/RandGen.cpp
   src/CPP/Common/CRC.cpp
   src/CPP/Common/CrcReg.cpp
+  src/CPP/Common/C_FileIO.cpp
   src/CPP/Common/IntToString.cpp
   src/CPP/Common/MyMap.cpp
   src/CPP/Common/MyString.cpp
@@ -861,6 +865,8 @@ source_group("CPP/Common"
   src/CPP/Common/ComTry.h
   src/CPP/Common/CRC.cpp
   src/CPP/Common/CrcReg.cpp
+  src/CPP/Common/C_FileIO.cpp
+  src/CPP/Common/C_FileIO.h
   src/CPP/Common/Defs.h
   src/CPP/Common/DynamicBuffer.h
   src/CPP/Common/IntToString.cpp
@@ -948,6 +954,8 @@ source_group("CPP/7zip/Archive/Common"
   src/CPP/7zip/Archive/Common/CoderMixer2.h
   src/CPP/7zip/Archive/Common/DummyOutStream.cpp
   src/CPP/7zip/Archive/Common/DummyOutStream.h
+  src/CPP/7zip/Archive/Common/FindSignature.cpp
+  src/CPP/7zip/Archive/Common/FindSignature.h
   src/CPP/7zip/Archive/Common/HandlerOut.cpp
   src/CPP/7zip/Archive/Common/HandlerOut.h
   src/CPP/7zip/Archive/Common/InStreamWithCRC.cpp

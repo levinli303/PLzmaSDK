@@ -99,9 +99,7 @@ public:
 
   CFileInfoBase() { ClearBase(); }
   void ClearBase() throw();
-#if !defined(LIBPLZMA)
   bool SetAs_StdInFile();
-#endif // LIBPLZMA
 
  #ifdef _WIN32
  
@@ -275,7 +273,7 @@ typedef CFileInfo CDirEntry;
 
 #else // WIN32
 
-#if !defined(LIBPLZMA)
+
 struct CDirEntry
 {
   ino_t iNode;
@@ -326,7 +324,6 @@ public:
     return false; // change it
   }
 };
-#endif // !LIBPLZMA
 
 /*
 inline UInt32 Get_WinAttrib_From_PosixMode(UInt32 mode)

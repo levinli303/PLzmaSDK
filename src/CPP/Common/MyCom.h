@@ -9,18 +9,9 @@
 template <class T>
 class CMyComPtr
 {
-#if defined(LIBPLZMA)
-  T * _p = nullptr;
-#else
   T* _p;
-#endif
 public:
-#if defined(LIBPLZMA)
-  CMyComPtr() noexcept {}
-  CMyComPtr(CMyComPtr<T> && lp) noexcept : _p(lp._p) { lp._p = nullptr; }
-#else
   CMyComPtr(): _p(NULL) {}
-#endif
   CMyComPtr(T* p) throw() { if ((_p = p) != NULL) p->AddRef(); }
   CMyComPtr(const CMyComPtr<T>& lp) throw() { if ((_p = lp._p) != NULL) _p->AddRef(); }
   ~CMyComPtr() { if (_p) _p->Release(); }
@@ -387,7 +378,7 @@ EXTERN_C_END
 #else // !Z7_COM_USE_ATOMIC
 
 #define Z7_COM_ADDREF_RELEASE \
-  public: \
+  private: \
   STDMETHOD_(ULONG, AddRef)() throw() Z7_override Z7_final \
     { return ++_m_RefCount; } \
   STDMETHOD_(ULONG, Release)() throw() Z7_override Z7_final \
