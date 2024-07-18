@@ -304,9 +304,11 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/C/Sort.h
   src/C/SwapBytes.h
   src/C/Threads.h
+  src/C/Xxh64.h
   src/C/Xz.h
   src/C/XzCrc64.h
   src/C/XzEnc.h
+  src/C/ZstdDec.h
   src/plzma_base_callback.hpp
   src/plzma_c_bindings_private.hpp
   src/plzma_common.hpp
@@ -414,6 +416,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Compress/XzDecoder.h
   src/CPP/7zip/Compress/XzEncoder.h
   src/CPP/7zip/Compress/ZlibDecoder.h
+  src/CPP/7zip/Compress/ZstdDecoder.h
   src/CPP/7zip/Crypto/7zAes.h
   src/CPP/7zip/Crypto/MyAes.h
   src/CPP/7zip/Crypto/RandGen.h
@@ -508,12 +511,14 @@ set(LIBPLZMA_SOURCES
   src/C/Sort.c
   src/C/SwapBytes.c
   src/C/Threads.c
+  src/C/Xxh64.c
   src/C/Xz.c
   src/C/XzCrc64.c
   src/C/XzCrc64Opt.c
   src/C/XzDec.c
   src/C/XzEnc.c
   src/C/XzIn.c
+  src/C/ZstdDec.c
   src/plzma.cpp
   src/plzma_base_callback.cpp
   src/plzma_common.cpp
@@ -589,6 +594,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/VhdxHandler.cpp
   src/CPP/7zip/Archive/VmdkHandler.cpp
   src/CPP/7zip/Archive/XzHandler.cpp
+  src/CPP/7zip/Archive/ZstdHandler.cpp
   src/CPP/7zip/Common/CreateCoder.cpp
   src/CPP/7zip/Common/CWrappers.cpp
   src/CPP/7zip/Common/FileStreams.cpp
@@ -640,6 +646,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/XzDecoder.cpp
   src/CPP/7zip/Compress/XzEncoder.cpp
   src/CPP/7zip/Compress/ZlibDecoder.cpp
+  src/CPP/7zip/Compress/ZstdDecoder.cpp
   src/CPP/7zip/Crypto/7zAes.cpp
   src/CPP/7zip/Crypto/7zAesRegister.cpp
   src/CPP/7zip/Crypto/MyAes.cpp
@@ -818,6 +825,8 @@ source_group("C"
   src/C/SwapBytes.h
   src/C/Threads.c
   src/C/Threads.h
+  src/C/Xxh64.c
+  src/C/Xxh64.h
   src/C/Xz.c
   src/C/Xz.h
   src/C/XzCrc64.c
@@ -827,6 +836,8 @@ source_group("C"
   src/C/XzEnc.c
   src/C/XzEnc.h
   src/C/XzIn.c
+  src/C/ZstdDec.c
+  src/C/ZstdDec.h
 )
 
 # ---- grop: Lzma CPP/Windows headers and sources ----
@@ -1006,6 +1017,7 @@ source_group("CPP/7zip/Archive"
   src/CPP/7zip/Archive/StdAfx.h
   src/CPP/7zip/Archive/XzHandler.cpp
   src/CPP/7zip/Archive/XzHandler.h
+  src/CPP/7zip/Archive/ZstdHandler.cpp
 )
 
 # ---- grop: Lzma CPP/7zip/Common headers and sources ----
@@ -1103,6 +1115,8 @@ source_group("CPP/7zip/Compress"
   src/CPP/7zip/Compress/XzDecoder.h
   src/CPP/7zip/Compress/XzEncoder.cpp
   src/CPP/7zip/Compress/XzEncoder.h
+  src/CPP/7zip/Compress/ZstdDecoder.cpp
+  src/CPP/7zip/Compress/ZstdDecoder.h
 )
 
 # ---- grop: Lzma CPP/7zip/Crypto headers and sources ----
