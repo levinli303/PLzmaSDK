@@ -2,8 +2,6 @@
 
 #include "StdAfx.h"
 
-#if !defined(LIBPLZMA_NO_TAR)
-
 #include "../../../../C/CpuArch.h"
 
 #include "../../../Common/StringToInt.h"
@@ -1150,5 +1148,3 @@ HRESULT CArchive::ReadItem(CItemEx &item)
 }
 
 }}
-
-#endif // !LIBPLZMA_NO_TAR

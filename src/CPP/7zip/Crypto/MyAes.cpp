@@ -8,9 +8,7 @@
 
 namespace NCrypto {
 
-#if !defined(LIBPLZMA_USING_REGISTRATORS)
 static struct CAesTabInit { CAesTabInit() { AesGenTables();} } g_AesTabInit;
-#endif
 
 CAesCoder::CAesCoder(
       // bool encodeMode,

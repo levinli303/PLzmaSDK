@@ -4,10 +4,7 @@
 
 #include "../../../Common/StringToInt.h"
 
-// Empty header
-#if !defined(LIBPLZMA)
 #include "../Common/ParseProperties.h"
-#endif
 
 #include "HandlerOut.h"
 

@@ -347,6 +347,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Archive/Common/MultiStream.h
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.h
   src/CPP/7zip/Archive/Common/OutStreamWithSha1.h
+  src/CPP/7zip/Archive/Common/ParseProperties.h
   src/CPP/7zip/Archive/Common/StdAfx.h
   src/CPP/7zip/Archive/Iso/IsoHandler.h
   src/CPP/7zip/Archive/Iso/IsoHeader.h
@@ -556,6 +557,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/Common/MultiStream.cpp
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.cpp
   src/CPP/7zip/Archive/Common/OutStreamWithSha1.cpp
+  src/CPP/7zip/Archive/Common/ParseProperties.cpp
   src/CPP/7zip/Archive/Iso/IsoHandler.cpp
   src/CPP/7zip/Archive/Iso/IsoHeader.cpp
   src/CPP/7zip/Archive/Iso/IsoIn.cpp
@@ -968,6 +970,8 @@ source_group("CPP/7zip/Archive/Common"
   src/CPP/7zip/Archive/Common/OutStreamWithCRC.h
   src/CPP/7zip/Archive/Common/OutStreamWithSha1.cpp
   src/CPP/7zip/Archive/Common/OutStreamWithSha1.h
+  src/CPP/7zip/Archive/Common/ParseProperties.cpp
+  src/CPP/7zip/Archive/Common/ParseProperties.h
   src/CPP/7zip/Archive/Common/StdAfx.h
 )
 

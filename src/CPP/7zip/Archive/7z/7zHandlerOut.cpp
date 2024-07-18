@@ -7,10 +7,7 @@
 #include "../../../Common/Wildcard.h"
 
 #include "../Common/ItemNameUtils.h"
-// Empty header
-#if !defined(LIBPLZMA)
 #include "../Common/ParseProperties.h"
-#endif
 
 #include "7zHandler.h"
 #include "7zOut.h"

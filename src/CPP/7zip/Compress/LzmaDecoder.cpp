@@ -29,9 +29,9 @@ CDecoder::CDecoder():
     FinishStream(false),
     _propsWereSet(false),
     _outSizeDefined(false),
-    _outStep(::plzma::kDecoderWriteSize),
+    _outStep(1 << 20),
     _inBufSize(0),
-    _inBufSizeNew(::plzma::kDecoderReadSize),
+    _inBufSizeNew(1 << 20),
     _lzmaStatus(LZMA_STATUS_NOT_SPECIFIED),
     _inBuf(NULL)
 {

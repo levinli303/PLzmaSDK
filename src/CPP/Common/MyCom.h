@@ -378,7 +378,7 @@ EXTERN_C_END
 #else // !Z7_COM_USE_ATOMIC
 
 #define Z7_COM_ADDREF_RELEASE \
-  private: \
+  public: \
   STDMETHOD_(ULONG, AddRef)() throw() Z7_override Z7_final \
     { return ++_m_RefCount; } \
   STDMETHOD_(ULONG, Release)() throw() Z7_override Z7_final \

@@ -2,8 +2,6 @@
 
 #include "StdAfx.h"
 
-#if !defined(LIBPLZMA_NO_TAR)
-
 // #include <stdio.h>
 
 #include "../../../Windows/TimeUtils.h"
@@ -563,5 +561,3 @@ HRESULT UpdateArchive(IInStream *inStream, ISequentialOutStream *outStream,
 }
 
 }}
-
-#endif // !LIBPLZMA_NO_TAR

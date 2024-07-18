@@ -2,8 +2,6 @@
 
 #include "StdAfx.h"
 
-#if !defined(LIBPLZMA_NO_TAR)
-
 #include "../../Common/RegisterArc.h"
 
 #include "TarHandler.h"
@@ -37,5 +35,3 @@ uint64_t plzma_registrator_17(void) {
     return NArchive::NTar::g_ArcInfo.Flags;
 }
 #endif
-
-#endif // !LIBPLZMA_NO_TAR

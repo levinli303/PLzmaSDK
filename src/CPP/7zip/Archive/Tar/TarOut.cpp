@@ -2,8 +2,6 @@
 
 #include "StdAfx.h"
 
-#if !defined(LIBPLZMA_NO_TAR)
-
 #include "../../../../C/7zCrc.h"
 
 #include "../../../Common/IntToString.h"
@@ -644,5 +642,3 @@ HRESULT COutArchive::WriteFinishHeader()
 }
 
 }}
-
-#endif // !LIBPLZMA_NO_TAR

@@ -2,7 +2,6 @@
 
 #include "StdAfx.h"
 
-#if !defined(LIBPLZMA_NO_TAR)
 // #include <stdio.h>
 
 #include "../../../Common/ComTry.h"
@@ -331,5 +330,3 @@ Z7_COM7F_IMF(CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
 }
 
 }}
-
-#endif // !LIBPLZMA_NO_TAR
