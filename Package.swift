@@ -1,4 +1,4 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.3
 
 import PackageDescription
 
@@ -13,17 +13,20 @@ let package = Package(
         .target(name: "libplzma",
                 path: "src",
                 cSettings: [
-                    .define("LIBPLZMA_VERSION_BUILD", to: "624")
+                    .define("LIBPLZMA_VERSION_BUILD", to: "750")
                 ],
                 cxxSettings: [
-                    .define("LIBPLZMA_VERSION_BUILD", to: "624")
+                    .define("LIBPLZMA_VERSION_BUILD", to: "750")
                 ]
         ),
         .target(name: "PLzmaSDK",
                 dependencies: [
                     .target(name: "libplzma")
                 ],
-                path: "swift"),
+                path: "swift",
+                resources: [
+                    .copy("../resources/PrivacyInfo.xcprivacy"),
+                ]),
         .target(name: "plzma_test_files",
                 path: "test_files"),
         .testTarget(

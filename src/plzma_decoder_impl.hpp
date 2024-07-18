@@ -113,6 +113,7 @@ namespace plzma {
             return true;
         }
         
+    protected:
         LIBPLZMA_NON_COPYABLE_NON_MOVABLE(DecoderImpl)
         
     public:
