@@ -11,6 +11,8 @@
 
 #include "ZstdDecoder.h"
 
+#include "../Common/RegisterCodec.h"
+
 namespace NCompress {
 namespace NZstd {
 
@@ -435,3 +437,19 @@ Z7_COM7F_IMF(CDecoder::Read(void *data, UInt32 size, UInt32 *processedSize))
 #endif
 
 }}
+
+namespace NCompress {
+namespace NZstd {
+
+REGISTER_CODEC_CREATE(CreateDec, CDecoder)
+#define CreateEnc NULL
+
+REGISTER_CODEC_2(Zstd, CreateDec, CreateEnc, 0x4F71101, "Zstd")
+
+}}
+
+#if defined(LIBPLZMA_USING_REGISTRATORS)
+uint64_t plzma_registrator_38(void) {
+    return NCompress::NZstd::g_CodecInfo_Zstd.Id;
+}
+#endif

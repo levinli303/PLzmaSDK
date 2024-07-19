@@ -1145,9 +1145,3 @@ REGISTER_ARC_IO(
 #endif
 
 }}
-
-#if defined(LIBPLZMA_USING_REGISTRATORS)
-uint64_t plzma_registrator_38(void) {
-    return NArchive::NZstd::g_ArcInfo.Flags;
-}
-#endif
