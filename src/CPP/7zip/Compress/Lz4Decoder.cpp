@@ -154,7 +154,7 @@ HRESULT CDecoder::CodeSpec(ISequentialInStream * inStream,
   if (LZ4MT_isError(result)) {
     if (result == (size_t)-LZ4MT_error_canceled)
       return E_ABORT;
-    return E_FAIL;
+    return S_FALSE;
   }
 
   /* 4) free resources */
