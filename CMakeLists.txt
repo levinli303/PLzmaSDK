@@ -261,6 +261,8 @@ endif(MSVC)
 # ---- include ----
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/C/lz4)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/C/zstdmt)
 
 # ---- public headers(exported with the library) ----
 set(LIBPLZMA_PUBLIC_HEADERS
@@ -379,6 +381,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Common/MethodProps.h
   src/CPP/7zip/Common/OffsetStream.h
   src/CPP/7zip/Common/OutBuffer.h
+  src/CPP/7zip/Common/ProgressMt.h
   src/CPP/7zip/Common/ProgressUtils.h
   src/CPP/7zip/Common/RegisterArc.h
   src/CPP/7zip/Common/RegisterCodec.h
@@ -409,6 +412,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Compress/LzOutWindow.h
   src/CPP/7zip/Compress/Lzx.h
   src/CPP/7zip/Compress/LzxDecoder.h
+  src/CPP/7zip/Compress/Lz4Decoder.h
   src/CPP/7zip/Compress/PpmdDecoder.h
   src/CPP/7zip/Compress/PpmdEncoder.h
   src/CPP/7zip/Compress/StdAfx.h
@@ -519,6 +523,9 @@ set(LIBPLZMA_SOURCES
   src/C/XzEnc.c
   src/C/XzIn.c
   src/C/ZstdDec.c
+  src/C/zstdmt/lz4-mt_common.c
+  src/C/zstdmt/lz4-mt_decompress.c
+  src/C/zstdmt/threading.c
   src/plzma.cpp
   src/plzma_base_callback.cpp
   src/plzma_common.cpp
@@ -605,6 +612,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Common/MethodProps.cpp
   src/CPP/7zip/Common/OffsetStream.cpp
   src/CPP/7zip/Common/OutBuffer.cpp
+  src/CPP/7zip/Common/ProgressMt.cpp
   src/CPP/7zip/Common/ProgressUtils.cpp
   src/CPP/7zip/Common/PropId.cpp
   src/CPP/7zip/Common/StreamObjects.cpp
@@ -639,6 +647,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/LzOutWindow.cpp
   src/CPP/7zip/Compress/LzmsDecoder.cpp
   src/CPP/7zip/Compress/LzxDecoder.cpp
+  src/CPP/7zip/Compress/Lz4Decoder.cpp
   src/CPP/7zip/Compress/PpmdDecoder.cpp
   src/CPP/7zip/Compress/PpmdEncoder.cpp
   src/CPP/7zip/Compress/PpmdRegister.cpp
@@ -838,6 +847,9 @@ source_group("C"
   src/C/XzIn.c
   src/C/ZstdDec.c
   src/C/ZstdDec.h
+  src/C/zstdmt/lz4-mt_common.c
+  src/C/zstdmt/lz4-mt_decompress.c
+  src/C/zstdmt/threading.c
 )
 
 # ---- grop: Lzma CPP/Windows headers and sources ----
@@ -1045,6 +1057,8 @@ source_group("CPP/7zip/Common"
   src/CPP/7zip/Common/OffsetStream.h
   src/CPP/7zip/Common/OutBuffer.cpp
   src/CPP/7zip/Common/OutBuffer.h
+  src/CPP/7zip/Common/ProgressMt.cpp
+  src/CPP/7zip/Common/ProgressMt.h
   src/CPP/7zip/Common/ProgressUtils.cpp
   src/CPP/7zip/Common/ProgressUtils.h
   src/CPP/7zip/Common/PropId.cpp
@@ -1103,6 +1117,8 @@ source_group("CPP/7zip/Compress"
   src/CPP/7zip/Compress/Lzx.h
   src/CPP/7zip/Compress/LzxDecoder.h
   src/CPP/7zip/Compress/LzxDecoder.cpp
+  src/CPP/7zip/Compress/Lz4Decoder.cpp
+  src/CPP/7zip/Compress/Lz4Decoder.h
   src/CPP/7zip/Compress/PpmdDecoder.cpp
   src/CPP/7zip/Compress/PpmdDecoder.h
   src/CPP/7zip/Compress/PpmdEncoder.cpp
