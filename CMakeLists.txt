@@ -261,8 +261,15 @@ endif(MSVC)
 # ---- include ----
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/C/lz4)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/C/zstdmt)
+
+if(WIN32)
+  find_path(LZ4_INCLUDE_DIR lz4.h)
+  find_library(LZ4_LIBRARY NAMES lz4 liblz4)
+  include_directories(${LZ4_INCLUDE_DIR})
+else()
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/C/lz4)
+endif()
 
 # ---- public headers(exported with the library) ----
 set(LIBPLZMA_PUBLIC_HEADERS
@@ -1158,6 +1165,9 @@ if(LIBPLZMA_OPT_SHARED)
     # MSVC does not append 'lib' - do it here to have consistent name
     set_property(TARGET plzma PROPERTY PREFIX "lib")
     set_property(TARGET plzma PROPERTY IMPORT_PREFIX "lib")
+  endif()
+  if(WIN32)
+    target_link_libraries(plzma ${LZ4_LIBRARY})
   endif()
   target_link_libraries(plzma Threads::Threads)
   if(LIBPLZMA_OPT_ANDROID)
