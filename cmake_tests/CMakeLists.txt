@@ -30,18 +30,22 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 link_directories(${PROJECT_BINARY_DIR})
 
-remove_definitions(-DCMAKE_BUILD)
-remove_definitions(-DLIBPLZMA_BUILD)
+remove_definitions(-DCMAKE_BUILD=1)
+remove_definitions(-DLIBPLZMA_BUILD=1)
 
-if(WIN32)
-  add_definitions(-DWIN32)
-  add_definitions(-D_WIN32)
-  add_definitions(-DUNICODE)
-  add_definitions(-D_UNICODE)
+# ---- definitions ----
+if (WIN32)
+  add_definitions(-DUNICODE=1)
+  add_definitions(-D_UNICODE=1)
 endif()
 
-if(MSVC)
-  if(CMAKE_BUILD_TYPE MATCHES Debug)
+if (MINGW)
+  add_definitions(-DLIBPLZMA_MINGW=1)
+  message("MinGW")
+endif()
+
+if (MSVC)
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MTd")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
   else()
@@ -53,6 +57,28 @@ if(MSVC)
   # https://docs.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /utf-8")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+  
+else()
+
+  # C with -fPIC
+  check_c_compiler_flag("-fPIC" WITH_FPIC_C)
+  if (WITH_FPIC_C)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  endif()
+
+  # CXX with -fPIC
+  check_cxx_compiler_flag("-fPIC" WITH_FPIC_CXX)
+  if (WITH_FPIC_CXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  endif()
+  
+  # CXX with -fno-rtti
+  check_cxx_compiler_flag("-fno-rtti" WITH_FNO_RTTI_CXX)
+  if (WITH_FNO_RTTI_CXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+    add_definitions(-DLIBPLZMA_NO_CPP_RTTI=1)
+  endif()
+  
 endif()
 
 set(LIBPLZMA_TESTS
@@ -70,7 +96,7 @@ foreach(LIBPLZMA_TEST ${LIBPLZMA_TESTS})
   # No dynamic tests for now
   add_executable(${LIBPLZMA_TEST} ${LIBPLZMA_TEST}.cpp plzma_public_tests.hpp)
   target_link_libraries(${LIBPLZMA_TEST} plzma)
-  set_property(TARGET ${LIBPLZMA_TEST} APPEND PROPERTY COMPILE_FLAGS -DLIBPLZMA_SHARED)
+  set_property(TARGET ${LIBPLZMA_TEST} APPEND PROPERTY COMPILE_FLAGS -DLIBPLZMA_SHARED=1)
   add_test(${LIBPLZMA_TEST} ${LIBPLZMA_TEST})
   
   # Copy DLL(s) to test executable.
@@ -82,13 +108,14 @@ foreach(LIBPLZMA_TEST ${LIBPLZMA_TESTS})
   add_executable("${LIBPLZMA_TEST}_static" ${LIBPLZMA_TEST}.cpp plzma_public_tests.hpp)
   target_link_libraries("${LIBPLZMA_TEST}_static" plzma_static)
   target_link_libraries("${LIBPLZMA_TEST}_static" Threads::Threads)
-  set_property(TARGET "${LIBPLZMA_TEST}_static" APPEND PROPERTY COMPILE_FLAGS -DLIBPLZMA_STATIC)
+  set_property(TARGET "${LIBPLZMA_TEST}_static" APPEND PROPERTY COMPILE_FLAGS -DLIBPLZMA_STATIC=1)
   add_test("${LIBPLZMA_TEST}_static" "${LIBPLZMA_TEST}_static")
 
-  if(WIN32)
+  if (WIN32)
     target_link_libraries(${LIBPLZMA_TEST} ws2_32)
     target_link_libraries("${LIBPLZMA_TEST}_static" ws2_32)
   endif()
+  
   # Do not install test binaries, no one needs them
   # install(TARGETS ${LIBPLZMA_TEST} DESTINATION bin)
   # install(TARGETS "${LIBPLZMA_TEST}_static" DESTINATION bin)

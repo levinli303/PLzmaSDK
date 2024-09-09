@@ -36,30 +36,39 @@
 #include <time.h>
 
 #if defined(LIBPLZMA_MSC)
-#include <malloc.h>
+#  include <malloc.h>
 #endif
 
 #if defined(BUILDING_NODE_EXTENSION)
-#include <node.h>
-#include <uv.h>
+#  include <node.h>
+#  include <uv.h>
 #endif
 
 #ifndef RAND_MAX
-#define RAND_MAX 0x7fffffff
+#  define RAND_MAX 0x7fffffff
 #endif
 
-#if defined(__clang__)
-  #if __has_feature(cxx_rtti)
-    #define RTTI_ENABLED 1
-  #endif
-#elif defined(__GNUG__)
-  #if defined(__GXX_RTTI)
-    #define RTTI_ENABLED 1
-  #endif
-#elif defined(_MSC_VER)
-  #if defined(_CPPRTTI)
-    #define RTTI_ENABLED 1
-  #endif
+#if __has_feature(cxx_rtti)
+#  define RTTI_ENABLED 1
+#elif (defined(__GXX_RTTI) && (__GXX_RTTI > 0))
+#  define RTTI_ENABLED 1
+#elif (defined(__cpp_rtti) && (__cpp_rtti > 0))
+// MinGW
+#  define RTTI_ENABLED 1
+#elif (defined(_CPPRTTI) && (_CPPRTTI > 0))
+// Defined as 1 if the /GR (Enable Run-Time Type Information) compiler option is set. Otherwise, undefined.
+// When /GR is on, the compiler defines the _CPPRTTI preprocessor macro.
+// By default, /GR is on. /GR- disables run-time type information.
+// However, /GR increases the size of the .rdata sections of your image.
+// If your code does not use dynamic_cast or typeid, /GR- may produce a smaller image.
+// https://learn.microsoft.com/en-us/cpp/build/reference/gr-enable-run-time-type-information
+#  define RTTI_ENABLED 1
+#endif
+
+#if !defined(RTTI_ENABLED) && !defined(LIBPLZMA_NO_CPP_RTTI)
+#  define LIBPLZMA_NO_CPP_RTTI 1
+#elif defined(RTTI_ENABLED) && defined(LIBPLZMA_NO_CPP_RTTI)
+#  error "CMake rtti configuration error."
 #endif
 
 int32_t plzma_random_in_range(const int32_t low, const int32_t up) {
@@ -81,12 +90,12 @@ uint64_t plzma_max_size(void) {
 #elif defined(ULONG_MAX)
     return static_cast<uint64_t>(ULONG_MAX);
 #else
-#error "Max size not defined."
+#  error "Max size not defined."
 #endif
 }
 
 void * LIBPLZMA_NULLABLE plzma_malloc(size_t size) {
-    return malloc(size);
+    return ::malloc(size);
 }
 
 void * LIBPLZMA_NULLABLE plzma_malloc_zero(size_t size) {
@@ -185,6 +194,14 @@ char * LIBPLZMA_NULLABLE plzma_cstring_append(char * LIBPLZMA_NULLABLE source, c
 #include "C/Aes.h"
 #include "C/XzCrc64.h"
 
+#if __has_include(<TargetConditionals.h>)
+#  include <TargetConditionals.h>
+#endif
+
+#if __has_include(<Availability.h>)
+#  include <Availability.h>
+#endif
+
 #define LIBPLZMA_STRINGIFY(x) #x
 #define LIBPLZMA_TOSTRING(x) LIBPLZMA_STRINGIFY(x)
 
@@ -196,182 +213,239 @@ const char * LIBPLZMA_NONNULL plzma_version(void) {
 #if defined(LIBPLZMA_VERSION_BUILD)
     " (" LIBPLZMA_TOSTRING(LIBPLZMA_VERSION_BUILD) ")"
 #endif
-    
+
 #if defined(LIBPLZMA_STATIC)
     " : static"
 #elif defined(LIBPLZMA_SHARED)
     " : shared"
 #endif
-    
+
 #if defined(DEBUG)
     " : debug"
 #endif
-    
+
 #if defined(COCOAPODS)
     " : CocoaPods"
 #endif
-    
+
 #if defined(SWIFT_PACKAGE)
     " : Swift Package"
 #endif
-    
+
 #if defined(LIBPLZMA_HAVE_STD)
     " : std"
 #endif
-    
+
 #if defined(RTTI_ENABLED)
     " : rtti"
 #elif defined(LIBPLZMA_NO_CPP_RTTI)
     " : no rtti"
 #endif
-    
+
 #if defined(__TIMESTAMP__)
     " : " __TIMESTAMP__
 #else
-#if defined(__DATE__)
-    " : " __DATE__
+#  if defined(__DATE__)
+        " : " __DATE__
+#  endif
+#  if defined(__TIME__)
+        " : " __TIME__
+#  endif
 #endif
-#if defined(__TIME__)
-    " : " __TIME__
+
+#if defined(LIBPLZMA_MSC)
+// https://learn.microsoft.com/en-us/cpp/overview/compiler-versions
+#  if defined(_MSC_FULL_VER)
+        " : MSVC " LIBPLZMA_TOSTRING(_MSC_FULL_VER)
+#  elif defined(_MSC_VER)
+        " : MSVC " LIBPLZMA_TOSTRING(_MSC_VER)
+#  else
+        " : MSVC"
+#  endif
 #endif
-#endif
-    
-#if defined(_MSC_FULL_VER)
-    " : " LIBPLZMA_TOSTRING(_MSC_FULL_VER)
-#elif defined(_MSC_VER)
-    " : " LIBPLZMA_TOSTRING(_MSC_VER)
-#endif
-    
+
 #if defined(__VERSION__)
-#if defined(__GNUC__) && !defined(__clang__)
-    " : gcc " __VERSION__
-#else
-    " : " __VERSION__
+#  if defined(LIBPLZMA_MINGW)
+        " : MinGW " __VERSION__
+#  elif defined(__GNUC__) && !defined(__clang__)
+        " : GCC " __VERSION__
+#  else
+        " : " __VERSION__
+#  endif
 #endif
+
+#if defined(LIBPLZMA_POSIX)
+    " : POSIX"
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(LIBPLZMA_OS_WINDOWS)
+   " : Windows"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_MACCATALYST) && TARGET_OS_MACCATALYST
+#  if defined(TARGET_OS_IOS) && TARGET_OS_IOS
+     " : iOS"
+#    if defined(TARGET_OS_SIMULATOR)
+       " (simulator)"
+#    endif
+     " on macOS Catalyst"
+#    if !defined(LIBPLZMA_PLATFORM_MOBILE)
+#      define LIBPLZMA_PLATFORM_MOBILE 1
+#    endif
+#  else
+     " : macOS Catalyst"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_IOS) && TARGET_OS_IOS
+   " : iOS"
+#  if defined(TARGET_OS_SIMULATOR)
+     " (simulator)"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#  if !defined(LIBPLZMA_PLATFORM_MOBILE)
+#    define LIBPLZMA_PLATFORM_MOBILE 1
+#  endif
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_TV) && TARGET_OS_TV
+   " : tvOS"
+#  if defined(TARGET_OS_SIMULATOR)
+     " (simulator)"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_WATCH) && TARGET_OS_WATCH
+   " : watchOS"
+#  if defined(TARGET_OS_SIMULATOR)
+     " (simulator)"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#  if !defined(LIBPLZMA_PLATFORM_MOBILE)
+#    define LIBPLZMA_PLATFORM_MOBILE 1
+#  endif
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_VISION) && TARGET_OS_VISION
+   " : visionOS"
+#  if defined(TARGET_OS_SIMULATOR)
+     " (simulator)"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#  if !defined(LIBPLZMA_PLATFORM_MOBILE)
+#    define LIBPLZMA_PLATFORM_MOBILE 1
+#  endif
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_BRIDGE) && TARGET_OS_BRIDGE
+   " : Apple bridge device"
+#  if defined(TARGET_OS_SIMULATOR)
+     " (simulator)"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+   " : iOS variant"
+#  if defined(TARGET_OS_SIMULATOR)
+     " (simulator)"
+#  endif
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#  if !defined(LIBPLZMA_PLATFORM_MOBILE)
+#    define LIBPLZMA_PLATFORM_MOBILE 1
+#  endif
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_OSX) && TARGET_OS_OSX
+   " : macOS"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(TARGET_OS_MAC) && TARGET_OS_MAC
+   " : macOS variant"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+  
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__APPLE__)
+   " : Apple"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && (defined(__ANDROID__) || defined(__ANDROID_API__))
+   " : Android"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
+#  if !defined(LIBPLZMA_PLATFORM_MOBILE)
+#    define LIBPLZMA_PLATFORM_MOBILE 1
+#  endif
+#endif
+
+#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__)
+#  if !defined(LIBPLZMA_VERSION_OS_DETECTED)
+     " : BSD"
+#    define LIBPLZMA_VERSION_OS_DETECTED 1
+#  endif
+#endif
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__gnu_linux__)
+   " : GNU/Linux"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
     
-#if defined(LIBPLZMA_OS_WINDOWS) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : Windows"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__linux__)
+   " : Linux"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
-#if defined(TARGET_OS_OSX) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-#if TARGET_OS_OSX
-    " : macOS"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
+
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__ros__)
+   " : Akaros"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
+    
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__native_client__)
+   " : NaCL"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
-#if defined(TARGET_OS_IPHONE) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-#if TARGET_OS_IPHONE
-    " : iPhone"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#if !defined(LIBPLZMA_PLATFORM_MOBILE)
-#define LIBPLZMA_PLATFORM_MOBILE 1
+    
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__asmjs__)
+   " : AsmJS"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
+    
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && defined(__Fuchsia__)
+   " : Fuschia"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
+    
+#if !defined(LIBPLZMA_VERSION_OS_DETECTED) && (defined(__unix__) || defined(__unix) || (defined(TARGET_OS_UNIX) && TARGET_OS_UNIX))
+   " : unix"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
-#if defined(TARGET_OS_IOS) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-#if TARGET_OS_IOS
-    " : iOS"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#if !defined(LIBPLZMA_PLATFORM_MOBILE)
-#define LIBPLZMA_PLATFORM_MOBILE 1
-#endif
-#endif
-#endif
-#if defined(TARGET_OS_WATCH) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-#if TARGET_OS_WATCH
-    " : watchOS"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#if !defined(LIBPLZMA_PLATFORM_MOBILE)
-#define LIBPLZMA_PLATFORM_MOBILE 1
-#endif
-#endif
-#endif
-#if defined(TARGET_OS_TV) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-#if TARGET_OS_TV
-    " : tvOS"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#if !defined(LIBPLZMA_PLATFORM_MOBILE)
-#define LIBPLZMA_PLATFORM_MOBILE 1
-#endif
-#endif
-#endif
-#if defined(TARGET_OS_SIMULATOR) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-#if TARGET_OS_SIMULATOR
-    " : Simulator"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#if !defined(LIBPLZMA_PLATFORM_MOBILE)
-#define LIBPLZMA_PLATFORM_MOBILE 1
-#endif
-#endif
-#endif
-#if defined(__APPLE__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : Apple"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if (defined(__ANDROID__) || defined(__ANDROID_API__)) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : Android"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#if !defined(LIBPLZMA_PLATFORM_MOBILE)
-#define LIBPLZMA_PLATFORM_MOBILE 1
-#endif
-#endif
-#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__)
+    
 #if !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : BSD"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#endif
-#if defined(__gnu_linux__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : GNU/Linux"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if defined(__linux__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : Linux"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if defined(__ros__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : Akaros"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if defined(__native_client__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : NaCL"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if defined(__asmjs__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : AsmJS"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if defined(__Fuchsia__) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : Fuschia"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if (defined(__unix__) || defined(__unix)) && !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : unix"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
-#endif
-#if !defined(LIBPLZMA_VERSION_OS_DETECTED)
-    " : unknown"
-#define LIBPLZMA_VERSION_OS_DETECTED 1
+   " : unknown"
+#  define LIBPLZMA_VERSION_OS_DETECTED 1
 #endif
     
 #if defined(BUILDING_NODE_EXTENSION)
-    " : Node.js " NODE_VERSION_STRING
-#if defined(V8_MAJOR_VERSION) && defined(V8_MINOR_VERSION) && defined(V8_PATCH_LEVEL)
-    ", V8 " LIBPLZMA_TOSTRING(V8_MAJOR_VERSION) "." LIBPLZMA_TOSTRING(V8_MINOR_VERSION) "." LIBPLZMA_TOSTRING(V8_PATCH_LEVEL)
-#if defined(V8_BUILD_NUMBER)
-    "." LIBPLZMA_TOSTRING(V8_BUILD_NUMBER)
-#endif
-#endif
-#if defined(UV_VERSION_MAJOR) && defined(UV_VERSION_MINOR) && defined(UV_VERSION_PATCH)
-    ", uv " LIBPLZMA_TOSTRING(UV_VERSION_MAJOR) "." LIBPLZMA_TOSTRING(UV_VERSION_MINOR) "." LIBPLZMA_TOSTRING(UV_VERSION_PATCH)
-#endif
-#if defined(NODE_MODULE_VERSION)
-    ", module " LIBPLZMA_TOSTRING(NODE_MODULE_VERSION)
-#endif
-#if defined(NAPI_VERSION)
-    ", napi " LIBPLZMA_TOSTRING(NAPI_VERSION)
-#endif
+   " : Node.js " NODE_VERSION_STRING
+#  if defined(V8_MAJOR_VERSION) && defined(V8_MINOR_VERSION) && defined(V8_PATCH_LEVEL)
+     ", V8 " LIBPLZMA_TOSTRING(V8_MAJOR_VERSION) "." LIBPLZMA_TOSTRING(V8_MINOR_VERSION) "." LIBPLZMA_TOSTRING(V8_PATCH_LEVEL)
+#    if defined(V8_BUILD_NUMBER)
+       "." LIBPLZMA_TOSTRING(V8_BUILD_NUMBER)
+#    endif
+#  endif
+#  if defined(UV_VERSION_MAJOR) && defined(UV_VERSION_MINOR) && defined(UV_VERSION_PATCH)
+     ", uv " LIBPLZMA_TOSTRING(UV_VERSION_MAJOR) "." LIBPLZMA_TOSTRING(UV_VERSION_MINOR) "." LIBPLZMA_TOSTRING(UV_VERSION_PATCH)
+#  endif
+#  if defined(NODE_MODULE_VERSION)
+     ", module " LIBPLZMA_TOSTRING(NODE_MODULE_VERSION)
+#  endif
+#  if defined(NAPI_VERSION)
+     ", napi " LIBPLZMA_TOSTRING(NAPI_VERSION)
+#  endif
 #endif
     
 #if defined(LIBPLZMA_NO_C_BINDINGS)
@@ -647,10 +721,10 @@ void plzma_item_out_stream_array_release(plzma_item_out_stream_array * LIBPLZMA_
 
 #if 0
 void plzma_print_memory(int line, const void * LIBPLZMA_NULLABLE mem, const size_t len) {
-    fprintf(stdout, "PRINT MEMORY AT LINE: %i, LEN: %llu\n", line, (unsigned long long)len);
+    ::fprintf(stdout, "PRINT MEMORY AT LINE: %i, LEN: %llu\n", line, (unsigned long long)len);
     if (!mem) {
-        fprintf(stdout, "NULL\n");
-        fflush(stdout);
+        ::fprintf(stdout, "NULL\n");
+        ::fflush(stdout);
         return;
     }
     char buff[256];
@@ -658,19 +732,19 @@ void plzma_print_memory(int line, const void * LIBPLZMA_NULLABLE mem, const size
     const uint8_t * umem = reinterpret_cast<const uint8_t *>(mem);
     bool hasoutput = false;
     for (size_t i = 0, j = 0; i < len; i++, j++) {
-        int sp = sprintf(s, "0x%02x ", umem[i]);
+        int sp = ::sprintf(s, "0x%02x ", umem[i]);
         s += sp;
         hasoutput = true;
         if (j == 10) {
-            fprintf(stdout, "%s\n", buff);
+            ::fprintf(stdout, "%s\n", buff);
             j = 0;
             s = buff;
             hasoutput = false;
         }
     }
     if (hasoutput) {
-        fprintf(stdout, "%s\n", buff);
+        ::fprintf(stdout, "%s\n", buff);
     }
-    fflush(stdout);
+    ::fflush(stdout);
 }
 #endif // #if 0

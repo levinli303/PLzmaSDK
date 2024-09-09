@@ -7,8 +7,6 @@
 [![node-current](https://img.shields.io/node/v/plzmasdk)](https://www.npmjs.com/package/plzmasdk)
 [![Build Status](https://travis-ci.org/OlehKulykov/PLzmaSDK.svg?branch=master)](https://travis-ci.org/OlehKulykov/PLzmaSDK)
 [![Build status](https://ci.appveyor.com/api/projects/status/1mb5w6nlht1ar2p8/branch/master?svg=true)](https://ci.appveyor.com/project/OlehKulykov/plzmasdk/branch/master)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OlehKulykov/PLzmaSDK.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OlehKulykov/PLzmaSDK/context:cpp)
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/OlehKulykov/PLzmaSDK.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OlehKulykov/PLzmaSDK/context:javascript)
 
 
 **P**LzmaSDK is (**P**ortable, **P**atched, **P**ackage, cross-**P**-latform) Lzma SDK.
@@ -57,7 +55,7 @@ All optional features are enabled by default, but they might be disabled during 
 -----------
 #### Swift Package Manager
 ```swift
-.package(url: "https://github.com/OlehKulykov/PLzmaSDK.git", .exact("1.4.4"))
+.package(url: "https://github.com/OlehKulykov/PLzmaSDK.git", .exact("1.4.7"))
 ```
 
 #### CocoaPods Podfile (Swift)
@@ -66,7 +64,7 @@ use_frameworks!
 platform :ios, '11.0'
 
 target '<REPLACE_WITH_YOUR_TARGET>' do
-    pod 'PLzmaSDK', '1.4.4'
+    pod 'PLzmaSDK', '1.4.7'
 end
 ```
 
@@ -76,7 +74,7 @@ use_frameworks!
 platform :ios, '9.0'
 
 target '<REPLACE_WITH_YOUR_TARGET>' do
-    pod 'PLzmaSDK-ObjC', '1.4.4'
+    pod 'PLzmaSDK-ObjC', '1.4.7'
 end
 ```
 
@@ -88,7 +86,7 @@ end
     "npm": ">=6.0.0"
   },
   "dependencies": {
-    "plzmasdk": "1.4.4"
+    "plzmasdk": "1.4.7"
   }
 }
 ```
@@ -108,12 +106,19 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j4
 ```
 
-#### CMake Windows
+#### CMake Windows (MSVC)
 ```bash
 cd PLzmaSDK
 md build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release --parallel 4
+```
+
+#### CMake Windows (MinGW)
+```bash
+...
+cmake -G"MinGW Makefiles" -DCMAKE_MAKE_PROGRAM=mingw32-make -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --config Release --parallel 4
 ```
 

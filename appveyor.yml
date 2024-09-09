@@ -1,4 +1,4 @@
-version: 1.4.4.{build}
+version: 1.4.7.{build}
 
 
 os: Visual Studio 2019
@@ -13,7 +13,6 @@ branches:
   only:
   - master
   - tmp
-  - multivolume
 
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
@@ -57,5 +56,5 @@ build_script:
   - cmake %CMAKE_ARGS% ..
   - cmake --build . --config Release --parallel 4
   - ctest --verbose
-  - cmake --build . --config Release --target Install
+  - cmake --build . --config Release --target install
   - cd ..
