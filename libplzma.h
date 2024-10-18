@@ -215,6 +215,9 @@ typedef enum plzma_error_code {
 
     /// @brief Password input needed.
     plzma_error_code_password_needed    = 5,
+
+    /// @brief Unexpected EOF.
+    plzma_error_code_unexpected_eof     = 6,
 } plzma_error_code;
 
 

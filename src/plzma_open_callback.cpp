@@ -123,6 +123,10 @@ namespace plzma {
             _exception = nullptr;
             throw localException;
         } else {
+            NWindows::NCOM::CPropVariant prop;
+            if (archive->GetArchiveProperty(kpidErrorFlags, &prop) == S_OK && (prop.lVal & kpv_ErrorFlags_UnexpectedEnd) != 0)
+                throw Exception(plzma_error_code_unexpected_eof, "Unexpected end of file.", __FILE__, __LINE__);
+
             // seek to zero to allow another round of detection
             if (stream->Seek(0, STREAM_SEEK_SET, nullptr) != S_OK)
             {
