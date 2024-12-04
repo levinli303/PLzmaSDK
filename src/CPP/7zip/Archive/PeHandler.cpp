@@ -3418,4 +3418,12 @@ REGISTER_ARC_I(
 uint64_t plzma_registrator_24(void) {
     return NArchive::NPe::g_ArcInfo.Flags;
 }
+
+uint64_t plzma_registrator_72(void) {
+    return NArchive::NTe::g_ArcInfo.Flags;
+}
+
+uint64_t plzma_registrator_73(void) {
+    return NArchive::NCoff::g_ArcInfo.Flags;
+}
 #endif

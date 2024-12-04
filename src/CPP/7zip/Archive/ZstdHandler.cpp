@@ -1145,3 +1145,7 @@ REGISTER_ARC_IO(
 #endif
 
 }}
+
+uint64_t plzma_registrator_75(void) {
+    return NArchive::NZstd::g_ArcInfo.Flags;
+}

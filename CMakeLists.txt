@@ -340,6 +340,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/C/RotateDefs.h
   src/C/Sha1.h
   src/C/Sha256.h
+  src/C/Sha512.h
   src/C/Sort.h
   src/C/SwapBytes.h
   src/C/Threads.h
@@ -379,6 +380,15 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Archive/7z/7zSpecStream.h
   src/CPP/7zip/Archive/7z/7zUpdate.h
   src/CPP/7zip/Archive/7z/StdAfx.h
+  src/CPP/7zip/Archive/Cab/CabBlockInStream.h
+  src/CPP/7zip/Archive/Cab/CabHandler.h
+  src/CPP/7zip/Archive/Cab/CabHeader.h
+  src/CPP/7zip/Archive/Cab/CabIn.h
+  src/CPP/7zip/Archive/Cab/CabItem.h
+  src/CPP/7zip/Archive/Cab/StdAfx.h
+  src/CPP/7zip/Archive/Chm/ChmHandler.h
+  src/CPP/7zip/Archive/Chm/ChmIn.h
+  src/CPP/7zip/Archive/Chm/StdAfx.h
   src/CPP/7zip/Archive/Common/CoderMixer2.h
   src/CPP/7zip/Archive/Common/DummyOutStream.h
   src/CPP/7zip/Archive/Common/FindSignature.h
@@ -394,6 +404,10 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Archive/Iso/IsoHeader.h
   src/CPP/7zip/Archive/Iso/IsoIn.h
   src/CPP/7zip/Archive/Iso/StdAfx.h
+  src/CPP/7zip/Archive/Nsis/NsisDecode.h
+  src/CPP/7zip/Archive/Nsis/NsisHandler.h
+  src/CPP/7zip/Archive/Nsis/NsisIn.h
+  src/CPP/7zip/Archive/Nsis/StdAfx.h
   src/CPP/7zip/Archive/Udf/StdAfx.h
   src/CPP/7zip/Archive/Udf/UdfHandler.h
   src/CPP/7zip/Archive/Udf/UdfIn.h
@@ -431,6 +445,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Compress/Bcj2Coder.h
   src/CPP/7zip/Compress/BcjCoder.h
   src/CPP/7zip/Compress/BitlDecoder.h
+  src/CPP/7zip/Compress/BitlEncoder.h
   src/CPP/7zip/Compress/BranchMisc.h
   src/CPP/7zip/Compress/BZip2Const.h
   src/CPP/7zip/Compress/BZip2Crc.h
@@ -439,6 +454,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Compress/CopyCoder.h
   src/CPP/7zip/Compress/DeflateConst.h
   src/CPP/7zip/Compress/DeflateDecoder.h
+  src/CPP/7zip/Compress/DeflateEncoder.h
   src/CPP/7zip/Compress/LzfseDecoder.h
   src/CPP/7zip/Compress/LzhDecoder.h
   src/CPP/7zip/Compress/Lzma2Decoder.h
@@ -452,12 +468,14 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Compress/Lz4Decoder.h
   src/CPP/7zip/Compress/PpmdDecoder.h
   src/CPP/7zip/Compress/PpmdEncoder.h
+  src/CPP/7zip/Compress/QuantumDecoder.h
   src/CPP/7zip/Compress/StdAfx.h
   src/CPP/7zip/Compress/XpressDecoder.h
   src/CPP/7zip/Compress/XzDecoder.h
   src/CPP/7zip/Compress/XzEncoder.h
   src/CPP/7zip/Compress/ZlibDecoder.h
   src/CPP/7zip/Compress/ZstdDecoder.h
+  src/CPP/7zip/Compress/ZDecoder.h
   src/CPP/7zip/Crypto/7zAes.h
   src/CPP/7zip/Crypto/MyAes.h
   src/CPP/7zip/Crypto/RandGen.h
@@ -475,6 +493,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/ComTry.h
   src/CPP/Common/C_FileIO.h
   src/CPP/Common/Defs.h
+  src/CPP/Common/DynLimBuf.h
   src/CPP/Common/DynamicBuffer.h
   src/CPP/Common/IntToString.h
   src/CPP/Common/ListFileUtils.h
@@ -549,6 +568,8 @@ set(LIBPLZMA_SOURCES
   src/C/Sha1Opt.c
   src/C/Sha256.c
   src/C/Sha256Opt.c
+  src/C/Sha512.c
+  src/C/Sha512Opt.c
   src/C/Sort.c
   src/C/SwapBytes.c
   src/C/Threads.c
@@ -596,6 +617,13 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/7z/7zRegister.cpp
   src/CPP/7zip/Archive/7z/7zUpdate.cpp
   src/CPP/7zip/Archive/ArchiveExports.cpp
+  src/CPP/7zip/Archive/Cab/CabBlockInStream.cpp
+  src/CPP/7zip/Archive/Cab/CabHandler.cpp
+  src/CPP/7zip/Archive/Cab/CabHeader.cpp
+  src/CPP/7zip/Archive/Cab/CabIn.cpp
+  src/CPP/7zip/Archive/Cab/CabRegister.cpp
+  src/CPP/7zip/Archive/Chm/ChmHandler.cpp
+  src/CPP/7zip/Archive/Chm/ChmIn.cpp
   src/CPP/7zip/Archive/Common/CoderMixer2.cpp
   src/CPP/7zip/Archive/Common/DummyOutStream.cpp
   src/CPP/7zip/Archive/Common/FindSignature.cpp
@@ -610,6 +638,10 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/Iso/IsoHeader.cpp
   src/CPP/7zip/Archive/Iso/IsoIn.cpp
   src/CPP/7zip/Archive/Iso/IsoRegister.cpp
+  src/CPP/7zip/Archive/Nsis/NsisDecode.cpp
+  src/CPP/7zip/Archive/Nsis/NsisHandler.cpp
+  src/CPP/7zip/Archive/Nsis/NsisIn.cpp
+  src/CPP/7zip/Archive/Nsis/NsisRegister.cpp
   src/CPP/7zip/Archive/Udf/UdfHandler.cpp
   src/CPP/7zip/Archive/Udf/UdfIn.cpp
   src/CPP/7zip/Archive/Wim/WimHandler.cpp
@@ -617,26 +649,49 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/Wim/WimIn.cpp
   src/CPP/7zip/Archive/Wim/WimRegister.cpp
   src/CPP/7zip/Archive/ApfsHandler.cpp
+  src/CPP/7zip/Archive/ApmHandler.cpp
+  src/CPP/7zip/Archive/ArHandler.cpp
+  src/CPP/7zip/Archive/ArjHandler.cpp
+  src/CPP/7zip/Archive/AvbHandler.cpp
   src/CPP/7zip/Archive/Base64Handler.cpp
+  src/CPP/7zip/Archive/Bz2Handler.cpp
+  src/CPP/7zip/Archive/ComHandler.cpp
+  src/CPP/7zip/Archive/CpioHandler.cpp
+  src/CPP/7zip/Archive/CramfsHandler.cpp
   src/CPP/7zip/Archive/DllExports2.cpp
   src/CPP/7zip/Archive/DmgHandler.cpp
+  src/CPP/7zip/Archive/ElfHandler.cpp
   src/CPP/7zip/Archive/ExtHandler.cpp
   src/CPP/7zip/Archive/FatHandler.cpp
+  src/CPP/7zip/Archive/FlvHandler.cpp
   src/CPP/7zip/Archive/GptHandler.cpp
+  src/CPP/7zip/Archive/GzHandler.cpp
   src/CPP/7zip/Archive/HandlerCont.cpp
   src/CPP/7zip/Archive/HfsHandler.cpp
+  src/CPP/7zip/Archive/IhexHandler.cpp
+  src/CPP/7zip/Archive/LpHandler.cpp
+  src/CPP/7zip/Archive/LvmHandler.cpp
   src/CPP/7zip/Archive/LzhHandler.cpp
   src/CPP/7zip/Archive/LzmaHandler.cpp
   src/CPP/7zip/Archive/MachoHandler.cpp
   src/CPP/7zip/Archive/MbrHandler.cpp
+  src/CPP/7zip/Archive/MslzHandler.cpp
   src/CPP/7zip/Archive/NtfsHandler.cpp
   src/CPP/7zip/Archive/PeHandler.cpp
   src/CPP/7zip/Archive/QcowHandler.cpp
+  src/CPP/7zip/Archive/RpmHandler.cpp
+  src/CPP/7zip/Archive/SparseHandler.cpp
   src/CPP/7zip/Archive/SplitHandler.cpp
+  src/CPP/7zip/Archive/SquashfsHandler.cpp
+  src/CPP/7zip/Archive/SwfHandler.cpp
+  src/CPP/7zip/Archive/UefiHandler.cpp
+  src/CPP/7zip/Archive/VdiHandler.cpp
   src/CPP/7zip/Archive/VhdHandler.cpp
   src/CPP/7zip/Archive/VhdxHandler.cpp
   src/CPP/7zip/Archive/VmdkHandler.cpp
+  src/CPP/7zip/Archive/XarHandler.cpp
   src/CPP/7zip/Archive/XzHandler.cpp
+  src/CPP/7zip/Archive/ZHandler.cpp
   src/CPP/7zip/Archive/ZstdHandler.cpp
   src/CPP/7zip/Common/CreateCoder.cpp
   src/CPP/7zip/Common/CWrappers.cpp
@@ -671,6 +726,9 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/CopyCoder.cpp
   src/CPP/7zip/Compress/CopyRegister.cpp
   src/CPP/7zip/Compress/DeflateDecoder.cpp
+  src/CPP/7zip/Compress/DeflateEncoder.cpp
+  src/CPP/7zip/Compress/DeflateRegister.cpp
+  src/CPP/7zip/Compress/Deflate64Register.cpp
   src/CPP/7zip/Compress/DeltaFilter.cpp
   src/CPP/7zip/Compress/LzfseDecoder.cpp
   src/CPP/7zip/Compress/LzhDecoder.cpp
@@ -687,11 +745,13 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Compress/PpmdDecoder.cpp
   src/CPP/7zip/Compress/PpmdEncoder.cpp
   src/CPP/7zip/Compress/PpmdRegister.cpp
+  src/CPP/7zip/Compress/QuantumDecoder.cpp
   src/CPP/7zip/Compress/XpressDecoder.cpp
   src/CPP/7zip/Compress/XzDecoder.cpp
   src/CPP/7zip/Compress/XzEncoder.cpp
   src/CPP/7zip/Compress/ZlibDecoder.cpp
   src/CPP/7zip/Compress/ZstdDecoder.cpp
+  src/CPP/7zip/Compress/ZDecoder.cpp
   src/CPP/7zip/Crypto/7zAes.cpp
   src/CPP/7zip/Crypto/7zAesRegister.cpp
   src/CPP/7zip/Crypto/MyAes.cpp
@@ -700,6 +760,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/Common/CRC.cpp
   src/CPP/Common/CrcReg.cpp
   src/CPP/Common/C_FileIO.cpp
+  src/CPP/Common/DynLimBuf.cpp
   src/CPP/Common/IntToString.cpp
   src/CPP/Common/MyMap.cpp
   src/CPP/Common/MyString.cpp
@@ -863,6 +924,9 @@ source_group("C"
   src/C/Sha256.c
   src/C/Sha256.h
   src/C/Sha256Opt.c
+  src/C/Sha512.c
+  src/C/Sha512.h
+  src/C/Sha512Opt.c
   src/C/Sort.c
   src/C/Sort.h
   src/C/Sort.c
@@ -929,6 +993,8 @@ source_group("CPP/Common"
   src/CPP/Common/C_FileIO.cpp
   src/CPP/Common/C_FileIO.h
   src/CPP/Common/Defs.h
+  src/CPP/Common/DynLimBuf.cpp
+  src/CPP/Common/DynLimBuf.h
   src/CPP/Common/DynamicBuffer.h
   src/CPP/Common/IntToString.cpp
   src/CPP/Common/IntToString.h
@@ -1159,6 +1225,8 @@ source_group("CPP/7zip/Compress"
   src/CPP/7zip/Compress/PpmdEncoder.cpp
   src/CPP/7zip/Compress/PpmdEncoder.h
   src/CPP/7zip/Compress/PpmdRegister.cpp
+  src/CPP/7zip/Compress/QuantumDecoder.cpp
+  src/CPP/7zip/Compress/QuantumDecoder.h
   src/CPP/7zip/Compress/StdAfx.h
   src/CPP/7zip/Compress/XpressDecoder.h
   src/CPP/7zip/Compress/XpressDecoder.cpp
@@ -1168,6 +1236,8 @@ source_group("CPP/7zip/Compress"
   src/CPP/7zip/Compress/XzEncoder.h
   src/CPP/7zip/Compress/ZstdDecoder.cpp
   src/CPP/7zip/Compress/ZstdDecoder.h
+  src/CPP/7zip/Compress/ZDecoder.cpp
+  src/CPP/7zip/Compress/ZDecoder.h
 )
 
 # ---- grop: Lzma CPP/7zip/Crypto headers and sources ----

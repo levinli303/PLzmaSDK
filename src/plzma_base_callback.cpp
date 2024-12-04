@@ -164,7 +164,7 @@ namespace plzma {
     }
 
     static GUID CLSIDTypePe(void) noexcept {
-        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCF, 0x00, 0x00);
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xDD, 0x00, 0x00);
     }
 
     static GUID CLSIDTypeQcow(void) noexcept {
@@ -219,6 +219,150 @@ namespace plzma {
         return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE7, 0x00, 0x00);
     }
 
+    static GUID CLSIDTypeSplit(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xEA, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeLzmaAr(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x0A, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeLzma86Ar(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x0B, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeLzma2(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x21, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeApm(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD4, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeAr(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xEC, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeArj(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x04, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeAvb(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC0, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeBz2(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x02, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeCom(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE5, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeCpio(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xED, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeCramfs(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD3, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeElf(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xDE, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeFlv(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD6, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeGz(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xEF, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeIhex(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCD, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeLp(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC1, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeLvm(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xBF, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeMslz(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD5, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeRpm(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xEB, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeSparse(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC2, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeSquahfs(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD2, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeSwf(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD7, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeUEFIf(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD1, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeVdi(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC9, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeXar(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE1, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeZ(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x05, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeCab(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x08, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeChm(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xE9, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeNsis(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x09, 0x00, 0x00);
+    }
+
+    static GUID GLSIDTypeUEFIc(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD0, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeHxs(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCE, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeTe(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xCF, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeCoff(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xC6, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeSwfc(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0xD8, 0x00, 0x00);
+    }
+
+    static GUID CLSIDTypeZstd(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x0E, 0x00, 0x00);
+    }
+
     CObjectVector<GUID> sortedSupportedCodecUUIDs;
 
     CObjectVector<GUID> BaseCallback::getSortedSupportedCodecUUIDs() const noexcept
@@ -244,6 +388,42 @@ namespace plzma {
             sortedSupportedCodecUUIDs.Add(CLSIDTypeQcow());
             sortedSupportedCodecUUIDs.Add(CLSIDTypeNtfs());
             sortedSupportedCodecUUIDs.Add(CLSIDTypeWim());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeSplit());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeLzmaAr());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeLzma86Ar());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeLzma2());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeApm());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeAr());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeArj());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeAvb());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeBz2());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeCom());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeCpio());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeCramfs());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeElf());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeFlv());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeGz());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeIhex());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeLp());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeLvm());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeMslz());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeRpm());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeSparse());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeSquahfs());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeSwf());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeUEFIf());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeVdi());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeXar());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeZ());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeCab());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeChm());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeNsis());
+            sortedSupportedCodecUUIDs.Add(GLSIDTypeUEFIc());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeHxs());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeTe());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeCoff());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeSwfc());
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeZstd());
             sortedSupportedCodecUUIDs.Add(CLSIDTypeXz());
 #if !defined(LIBPLZMA_NO_TAR)
             sortedSupportedCodecUUIDs.Add(CLSIDTypeTar());
