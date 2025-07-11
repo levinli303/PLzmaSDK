@@ -935,7 +935,9 @@ void CEncoder::WriteBytes(const Byte *data, UInt32 sizeInBits, unsigned lastByte
 HRESULT CEncoder::CodeReal(ISequentialInStream *inStream, ISequentialOutStream *outStream,
     const UInt64 * /* inSize */, const UInt64 * /* outSize */, ICompressProgressInfo *progress)
 {
+#ifndef Z7_ST
   ThreadNextGroup_Init(&ThreadNextGroup, _props.NumThreadGroups, 0); // startGroup
+#endif
 
   NumBlocks = 0;
   #ifndef Z7_ST
