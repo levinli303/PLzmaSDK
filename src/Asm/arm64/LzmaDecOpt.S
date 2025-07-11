@@ -10,7 +10,6 @@
 ; LzmaDec_DecodeReal_*() must be equal in both versions (C / ASM).
 */
 
-#if (defined(__arm64__) && __arm64__) || (defined(__arm64) && __arm64)
 
 #include "7zAsm.S"
 
@@ -1486,5 +1485,3 @@ fin:
 	.ident	"TAG_LZMA"
 	.section	.note.GNU-stack,"",@progbits
 */        
-
-#endif 

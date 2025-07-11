@@ -1,8 +1,6 @@
 // 7zAsm.S -- ASM macros for arm64
 // 2021-04-25 : Igor Pavlov : Public domain
 
-#if (defined(__arm64__) && __arm64__) || (defined(__arm64) && __arm64)
-
 #define  r0 x0
 #define  r1 x1
 #define  r2 x2
@@ -181,5 +179,3 @@ arm64 and arm use reverted c flag after subs/cmp instructions:
 .macro MY_ALIGN_64 macro
         .p2align 6,, (1 << 6) - 1
 .endm
-
-#endif
