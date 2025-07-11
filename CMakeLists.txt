@@ -810,7 +810,7 @@ if(NOT LIBPLZMA_OPT_NO_TAR)
   )
 endif()
 
-if (NOT WIN32)
+if (NOT WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
     list(APPEND LIBPLZMA_SOURCES
       src/Asm/arm64/7zAsm.S
       src/Asm/arm64/LzmaDecOpt.S
