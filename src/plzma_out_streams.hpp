@@ -212,7 +212,7 @@ namespace plzma {
         Stat _itemStat;
         String _partName;
         String _partExtension;
-        plzma_plzma_multi_stream_part_name_format _format = plzma_plzma_multi_stream_part_name_format_name_ext_00x;
+        plzma_multi_stream_part_name_format _format = plzma_multi_stream_part_name_format_name_ext_00x;
         
     protected:
         virtual SharedPtr<OutStreamBase> addPart() override final;
@@ -228,14 +228,14 @@ namespace plzma {
                            const Stat & itemStat,
                            const String & partName,
                            const String & partExtension,
-                           const plzma_plzma_multi_stream_part_name_format format,
+                           const plzma_multi_stream_part_name_format format,
                            const plzma_size_t partSize);
         
         OutMultiFileStream(Path && dirPath,
                            Stat && itemStat,
                            String && partName,
                            String && partExtension,
-                           const plzma_plzma_multi_stream_part_name_format format,
+                           const plzma_multi_stream_part_name_format format,
                            const plzma_size_t partSize);
         
         OutMultiFileStream() = delete;

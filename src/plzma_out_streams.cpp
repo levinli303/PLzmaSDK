@@ -676,7 +676,7 @@ namespace plzma {
     void OutMultiFileStream::checkPartsCount(const uint64_t partsCount) const {
         OutMultiStreamBase::checkPartsCount(partsCount);
         switch (_format) {
-            case plzma_plzma_multi_stream_part_name_format_name_ext_00x:
+            case plzma_multi_stream_part_name_format_name_ext_00x:
                 if (partsCount > 999) { // ext.999
                     throw Exception(plzma_error_code_invalid_arguments, "Can't instantiate more than 999 file sub-streams with provided 00x format.", __FILE__, __LINE__);
                 }
@@ -719,7 +719,7 @@ namespace plzma {
                                            const Stat & itemStat,
                                            const String & partName,
                                            const String & partExtension,
-                                           const plzma_plzma_multi_stream_part_name_format format,
+                                           const plzma_multi_stream_part_name_format format,
                                            const plzma_size_t partSize) : OutMultiStreamBase(partSize) {
         preparePath(dirPath);
         _dirPath = dirPath;
@@ -733,7 +733,7 @@ namespace plzma {
                                            Stat && itemStat,
                                            String && partName,
                                            String && partExtension,
-                                           const plzma_plzma_multi_stream_part_name_format format,
+                                           const plzma_multi_stream_part_name_format format,
                                            const plzma_size_t partSize) : OutMultiStreamBase(partSize) {
         preparePath(dirPath);
         _dirPath = static_cast<Path &&>(dirPath);
@@ -759,7 +759,7 @@ namespace plzma {
                                                        const Stat & itemStat,
                                                        const String & partName,
                                                        const String & partExtension,
-                                                       const plzma_plzma_multi_stream_part_name_format format,
+                                                       const plzma_multi_stream_part_name_format format,
                                                        const plzma_size_t partSize) {
         return SharedPtr<OutMultiStream>(new OutMultiFileStream(dirPath, itemStat, partName, partExtension, format, partSize));
     }
@@ -768,7 +768,7 @@ namespace plzma {
                                                        Stat && itemStat,
                                                        String && partName,
                                                        String && partExtension,
-                                                       const plzma_plzma_multi_stream_part_name_format format,
+                                                       const plzma_multi_stream_part_name_format format,
                                                        const plzma_size_t partSize) {
         return SharedPtr<OutMultiStream>(new OutMultiFileStream(static_cast<Path &&>(dirPath),
                                                                 static_cast<Stat &&>(itemStat),
@@ -847,7 +847,7 @@ plzma_out_multi_stream plzma_out_multi_stream_create_with_directory_path_utf8_na
                                                                                                         const plzma_stat * LIBPLZMA_NONNULL item_stat,
                                                                                                         const char * LIBPLZMA_NONNULL part_name,
                                                                                                         const char * LIBPLZMA_NULLABLE part_extension,
-                                                                                                        const plzma_plzma_multi_stream_part_name_format format,
+                                                                                                        const plzma_multi_stream_part_name_format format,
                                                                                                         const plzma_size_t part_size) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_out_multi_stream, dir_path)
     auto dirPath = static_cast<const Path &>(*static_cast<const Path *>(dir_path->object));
@@ -866,7 +866,7 @@ plzma_out_multi_stream plzma_out_multi_stream_create_with_directory_path_wide_na
                                                                                                         const plzma_stat * LIBPLZMA_NONNULL item_stat,
                                                                                                         const wchar_t * LIBPLZMA_NONNULL part_name,
                                                                                                         const wchar_t * LIBPLZMA_NULLABLE part_extension,
-                                                                                                        const plzma_plzma_multi_stream_part_name_format format,
+                                                                                                        const plzma_multi_stream_part_name_format format,
                                                                                                         const plzma_size_t part_size) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_out_multi_stream, dir_path)
     auto dirPath = static_cast<const Path &>(*static_cast<const Path *>(dir_path->object));
