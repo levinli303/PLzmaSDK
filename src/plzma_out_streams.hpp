@@ -95,6 +95,8 @@ namespace plzma {
         virtual bool opened() const final;
         virtual bool erase(const plzma_erase eraseType = plzma_erase_none) override final;
         virtual RawHeapMemorySize copyContent() const override final;
+
+        const Path & path() const noexcept;
         
         OutFileStream(const Path & path, const Stat & stat);
         OutFileStream(Path && path, Stat && stat);

@@ -1050,6 +1050,8 @@ LIBPLZMA_C_API(plzma_memory) plzma_out_stream_copy_content(plzma_out_stream * LI
 /// @brief Releases the output stream object.
 LIBPLZMA_C_API(void) plzma_out_stream_release(plzma_out_stream * LIBPLZMA_NONNULL stream);
 
+LIBPLZMA_C_API(plzma_path) plzma_out_stream_path(plzma_out_stream * LIBPLZMA_NONNULL stream);
+
 /// Out Multi Stream
 
 /// @brief Creates the output multi stream with directory path, part name, extension utf8 string, format and part size.

@@ -135,6 +135,10 @@ namespace plzma {
         LIBPLZMA_LOCKGUARD(lock, _mutex)
         return _file ? RawHeapMemorySize(RawHeapMemory(), 0) : fileContent(_path);
     }
+
+    const Path & OutFileStream::path() const noexcept {
+        return _path;
+    }
     
     OutFileStream::OutFileStream(const Path & path, const Stat & stat) : OutStreamBase(),
         _path(path),
@@ -841,6 +845,12 @@ void plzma_out_stream_release(plzma_out_stream * LIBPLZMA_NONNULL stream) {
     SharedPtr<OutStream> streamSPtr;
     streamSPtr.assign(static_cast<OutStream *>(stream->object));
     stream->object = nullptr;
+}
+
+plzma_path plzma_out_stream_path(plzma_out_stream * LIBPLZMA_NONNULL stream) {
+    LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_path, stream)
+    createdCObject.object = static_cast<void *>(new Path(static_cast<const OutFileStream *>(stream->object)->path()));
+    LIBPLZMA_C_BINDINGS_CREATE_OBJECT_CATCH
 }
 
 plzma_out_multi_stream plzma_out_multi_stream_create_with_directory_path_utf8_name_ext_format_part_size(const plzma_path * LIBPLZMA_NONNULL dir_path,
