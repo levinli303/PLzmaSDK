@@ -170,7 +170,9 @@ typedef enum plzma_file_type {
     /// All archive items are combined and stored as one continuous stream without compression and without password protection.
     /// @note For this type, the \b plzma_method is ignored.
     /// @link https://en.wikipedia.org/wiki/Tar_(computing)
-    plzma_file_type_tar         = 3
+    plzma_file_type_tar         = 3,
+
+    plzma_file_type_zip         = 4
 } plzma_file_type;
 
 
@@ -190,6 +192,11 @@ typedef enum plzma_method {
     plzma_method_BZip2 =     4
 } plzma_method;
 
+typedef enum plzma_encryption_method {
+    plzma_encryption_method_zip_crypto    = 0,
+    plzma_encryption_method_aes_128       = 1,
+    plzma_encryption_method_aes_256       = 2
+} plzma_encryption_method;
 
 /// @brief Exception error codes.
 typedef enum plzma_error_code {
@@ -1421,6 +1428,9 @@ LIBPLZMA_C_API(void) plzma_encoder_set_password_wide_string(plzma_encoder * LIBP
 /// @throws \a Exception in case if crypto disabled.
 LIBPLZMA_C_API(void) plzma_encoder_set_password_utf8_string(plzma_encoder * LIBPLZMA_NONNULL encoder, const char * LIBPLZMA_NULLABLE password);
 
+LIBPLZMA_C_API(plzma_encryption_method) plzma_encoder_encryption_method(plzma_encoder * LIBPLZMA_NONNULL encoder);
+
+LIBPLZMA_C_API(void) plzma_encoder_set_encryption_method(plzma_encoder * LIBPLZMA_NONNULL encoder, const plzma_encryption_method method);
 
 /// @brief Getter for a 'solid' archive property.
 /// @note Enabled by default, the value is \a true.

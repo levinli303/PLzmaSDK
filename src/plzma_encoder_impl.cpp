@@ -82,7 +82,7 @@ namespace plzma {
             } else if ( (_result = setupSource(index)) != S_OK) {
                 return _result;
             }
-            LIBPLZMA_SET_VALUE_TO_PTR(newData, BoolToInt(!_source.isDir))
+            LIBPLZMA_SET_VALUE_TO_PTR(newData, BoolToInt(_type == plzma_file_type_zip ? true : !_source.isDir))
             LIBPLZMA_SET_VALUE_TO_PTR(newProperties, BoolToInt(true))
             if (indexInArchive) {
                 *indexInArchive = (UInt32)(Int32)-1;
@@ -503,6 +503,40 @@ namespace plzma {
             throw Exception(plzma_error_code_internal, "Can't apply 7z archive properties.", __FILE__, __LINE__);
         }
     }
+
+    void EncoderImpl::applySettingsZip(ISetProperties * properties) {
+        using namespace NWindows::NCOM;
+
+        static const UInt32 settingsCount = 5;
+        static const wchar_t * names[settingsCount] = {
+            L"x",   // compression level
+            L"tc",  // write creation time
+            L"ta",  // write access time
+            L"tm",  // write modification time
+            L"em",  // encryption method
+        };
+
+        static const wchar_t * encryptionName[] = {
+            L"ZipCrypto",
+            L"AES128",
+            L"AESS256"
+        };
+        
+        CPropVariant values[settingsCount] = {            
+            CPropVariant(static_cast<UInt32>(_compressionLevel)),               // compression level = 9 - ultra
+            CPropVariant((_options & OptionStoreCTime) ? true : false),         // write creation time
+            CPropVariant((_options & OptionStoreATime) ? true : false),         // write access time
+            CPropVariant((_options & OptionStoreMTime) ? true : false),         // write modification time
+            CPropVariant(encryptionName[_encryptionMethod])                     // encryption method
+        };
+        
+        const HRESULT res = properties->SetProperties(names,
+                                                      values,
+                                                      settingsCount);
+        if (res != S_OK) {
+            throw Exception(plzma_error_code_internal, "Can't apply zip archive properties.", __FILE__, __LINE__);
+        }
+    }
     
     void EncoderImpl::applySettingsXz(ISetProperties * properties) {
         using namespace NWindows::NCOM;
@@ -562,6 +596,9 @@ namespace plzma {
                 break;
             case plzma_file_type_tar:
                 applySettingsTar(setPropertiesRaw);
+                break;
+            case plzma_file_type_zip:
+                applySettingsZip(setPropertiesRaw);
                 break;
             default:
                 break;
@@ -674,6 +711,16 @@ namespace plzma {
         }
     }
     
+    plzma_encryption_method EncoderImpl::encryptionMethod() const {
+        LIBPLZMA_LOCKGUARD(lock, _mutex)
+        return _encryptionMethod;
+    }
+
+    void EncoderImpl::setEncryptionMethod(const plzma_encryption_method method) {
+        LIBPLZMA_LOCKGUARD(lock, _mutex)
+        _encryptionMethod = method;
+    }
+
     bool EncoderImpl::shouldCreateSolidArchive() const { return hasOption(OptionSolid); }
     void EncoderImpl::setShouldCreateSolidArchive(const bool solid) { setOption(OptionSolid, solid); }
     bool EncoderImpl::shouldCompressHeader() const { return hasOption(OptionCompressHeader); }
@@ -753,8 +800,8 @@ namespace plzma {
                                          const plzma_file_type type,
                                          const plzma_method method,
                                          const plzma_context context) {
-        if (type != plzma_file_type_7z) {
-            throw Exception(plzma_error_code_invalid_arguments, "Currently only 7-zip type archives supports multi streams.", __FILE__, __LINE__);
+        if (type != plzma_file_type_7z && type != plzma_file_type_zip) {
+            throw Exception(plzma_error_code_invalid_arguments, "Currently only 7-zip and zip type archives supports multi streams.", __FILE__, __LINE__);
         }
         auto baseStream = stream.cast<OutStreamBase>();
         if (baseStream) {
@@ -790,8 +837,8 @@ plzma_encoder plzma_encoder_create_with_multi_stream(plzma_out_multi_stream * LI
                                                      const plzma_method method,
                                                      const plzma_context context) {
     LIBPLZMA_C_BINDINGS_CREATE_OBJECT_FROM_TRY(plzma_decoder, stream)
-    if (type != plzma_file_type_7z) {
-        throw Exception(plzma_error_code_invalid_arguments, "Currently only 7-zip type archives supports multi streams.", __FILE__, __LINE__);
+    if (type != plzma_file_type_7z && type != plzma_file_type_zip) {
+        throw Exception(plzma_error_code_invalid_arguments, "Currently only 7-zip and zip type archives supports multi streams.", __FILE__, __LINE__);
     }
     SharedPtr<OutMultiStream> outStream(static_cast<OutMultiStream *>(stream->object));
     auto baseOutStream = outStream.cast<OutStreamBase>();
@@ -826,6 +873,18 @@ void plzma_encoder_set_password_wide_string(plzma_encoder * LIBPLZMA_NONNULL enc
 void plzma_encoder_set_password_utf8_string(plzma_encoder * LIBPLZMA_NONNULL encoder, const char * LIBPLZMA_NULLABLE password) {
     LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY(encoder)
     static_cast<EncoderImpl *>(encoder->object)->setPassword(password);
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH(encoder)
+}
+
+plzma_encryption_method plzma_encoder_encryption_method(plzma_encoder * LIBPLZMA_NONNULL encoder) {
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY_RETURN(encoder, plzma_encryption_method_zip_crypto)
+    return static_cast<EncoderImpl *>(encoder->object)->encryptionMethod();
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH_RETURN(encoder, plzma_encryption_method_zip_crypto)
+}
+
+void plzma_encoder_set_encryption_method(plzma_encoder * LIBPLZMA_NONNULL encoder, const plzma_encryption_method method) {
+    LIBPLZMA_C_BINDINGS_OBJECT_EXEC_TRY(encoder)
+    static_cast<EncoderImpl *>(encoder->object)->setEncryptionMethod(method);
     LIBPLZMA_C_BINDINGS_OBJECT_EXEC_CATCH(encoder)
 }
 
