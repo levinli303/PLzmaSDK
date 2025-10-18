@@ -121,6 +121,7 @@ namespace plzma {
         uint8_t _compressionLevel = 7;
         bool _opening = false;
         bool _compressing = false;
+        plzma_encryption_method _encryptionMethod = plzma_encryption_method_default;
         
         virtual void retain() override final;
         virtual void release() override final;
@@ -128,6 +129,7 @@ namespace plzma {
         uint64_t processAddedPaths();
         HRESULT setupSource(UInt32 index);
         void applySettings7z(ISetProperties * properties);
+        void applySettingsZip(ISetProperties * properties);
         void applySettingsXz(ISetProperties * properties);
         void applySettingsTar(ISetProperties * properties);
         void applySettings();
@@ -167,6 +169,8 @@ namespace plzma {
         virtual bool open() override final;
         virtual void abort() override final;
         virtual bool compress() override final;
+        virtual plzma_encryption_method encryptionMethod() const override final;
+        virtual void setEncryptionMethod(const plzma_encryption_method method) override final;
         virtual bool shouldCreateSolidArchive() const override final;
         virtual void setShouldCreateSolidArchive(const bool solid) override final;
         virtual uint8_t compressionLevel() const override final;

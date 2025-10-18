@@ -285,6 +285,7 @@ LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_72(void);
 LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_73(void);
 LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_74(void);
 LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_75(void);
+LIBPLZMA_C_API_PRIVATE(uint64_t) plzma_registrator_76(void);
 #endif // !LIBPLZMA_USING_REGISTRATORS
 
 #if 0

@@ -1476,7 +1476,10 @@ namespace plzma {
         /// @brief Setter for a 'solid' archive property.
         /// @note Thread-safe. Must be set before opening.
         virtual void setShouldCreateSolidArchive(const bool solid) = 0;
-        
+
+        virtual plzma_encryption_method encryptionMethod() const = 0;
+
+        virtual void setEncryptionMethod(const plzma_encryption_method method) = 0;
         
         /// @brief Getter for a compression level.
         /// @return The level in a range [0; 9].

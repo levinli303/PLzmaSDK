@@ -363,6 +363,10 @@ namespace plzma {
         return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x0E, 0x00, 0x00);
     }
 
+    static GUID CLSIDTypeZip(void) noexcept {
+        return CONSTRUCT_GUID(0x23170F69, 0x40C1, 0x278A, 0x10, 0x00, 0x00, 0x01, 0x10, 0x01, 0x00, 0x00);
+    }
+
     CObjectVector<GUID> sortedSupportedCodecUUIDs;
 
     CObjectVector<GUID> BaseCallback::getSortedSupportedCodecUUIDs() const noexcept
@@ -428,6 +432,8 @@ namespace plzma {
 #if !defined(LIBPLZMA_NO_TAR)
             sortedSupportedCodecUUIDs.Add(CLSIDTypeTar());
 #endif
+
+            sortedSupportedCodecUUIDs.Add(CLSIDTypeZip());
             sortedSupportedCodecUUIDs.Add(CLSIDType7z());
         }
         return sortedSupportedCodecUUIDs;
@@ -456,6 +462,11 @@ namespace plzma {
                 const GUID clsidTar = CLSIDTypeTar();
                 res = CreateObject(&clsidTar, archiveGUID, reinterpret_cast<void**>(&ptr));
 #endif
+                break;
+            }
+            case plzma_file_type_zip: {
+                const GUID clsidZip = CLSIDTypeZip();
+                res = CreateObject(&clsidZip, archiveGUID, reinterpret_cast<void**>(&ptr));
                 break;
             }
             default: break;
