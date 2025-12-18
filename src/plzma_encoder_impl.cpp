@@ -519,7 +519,7 @@ namespace plzma {
         static const wchar_t * encryptionName[] = {
             L"ZipCrypto",
             L"AES128",
-            L"AESS256"
+            L"AES256"
         };
         
         CPropVariant values[settingsCount] = {            
