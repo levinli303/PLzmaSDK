@@ -87,7 +87,6 @@ namespace plzma {
         CMyComPtr<IInArchive> archive() const noexcept;
         bool open();
         std::tuple<OpenResult, UInt32> open(CMyComPtr<IInStream> stream);
-        std::tuple<OpenResult, UInt32> open(CMyComPtr<IInStream> stream, const GUID & codecGuid);
         void abort();
         plzma_size_t itemsCount() noexcept;
         SharedPtr<Item> itemAt(const plzma_size_t index);

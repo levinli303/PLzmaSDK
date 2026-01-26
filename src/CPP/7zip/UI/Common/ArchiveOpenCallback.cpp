@@ -3,6 +3,7 @@
 #include "StdAfx.h"
 
 #include "../../../Common/ComTry.h"
+#include "../../../Common/Wildcard.h"
 
 #include "../../../Windows/FileName.h"
 #include "../../../Windows/PropVariant.h"
@@ -395,4 +396,74 @@ Z7_COM7F_IMF(COpenCallbackImp::SetTotal(const UInt64 /* total */))
 Z7_COM7F_IMF(COpenCallbackImp::SetCompleted(const UInt64 * /* completed */))
 {
   return S_OK;
+}
+
+
+struct CLinkLevelsInfo
+{
+  bool IsAbsolute;
+  bool ParentDirDots_after_NonParent;
+  int LowLevel;
+  int FinalLevel;
+
+  void Parse(const UString &path, bool isWSL);
+};
+
+void CLinkLevelsInfo::Parse(const UString &path, bool isWSL)
+{
+  IsAbsolute = isWSL ?
+      IS_PATH_SEPAR(path[0]) :
+      NFile::NName::IsAbsolutePath(path);
+  LowLevel = 0;
+  FinalLevel = 0;
+  ParentDirDots_after_NonParent = false;
+  bool nonParentDir = false;
+
+  UStringVector parts;
+  SplitPathToParts(path, parts);
+  int level = 0;
+  
+  FOR_VECTOR (i, parts)
+  {
+    const UString &s = parts[i];
+    if (s.IsEmpty())
+    {
+      if (i == 0)
+        IsAbsolute = true;
+      continue;
+    }
+    if (s.IsEqualTo("."))
+      continue;
+    if (s.IsEqualTo(".."))
+    {
+      if (IsAbsolute || nonParentDir)
+        ParentDirDots_after_NonParent = true;
+      level--;
+      if (LowLevel > level)
+          LowLevel = level;
+    }
+    else
+    {
+      nonParentDir = true;
+      level++;
+    }
+  }
+  
+  FinalLevel = level;
+}
+
+
+static bool IsSafePath(const UString &path, bool isWSL)
+{
+  CLinkLevelsInfo levelsInfo;
+  levelsInfo.Parse(path, isWSL);
+  return !levelsInfo.IsAbsolute
+      && levelsInfo.LowLevel >= 0
+      && levelsInfo.FinalLevel > 0;
+}
+
+bool IsSafePath(const UString &path);
+bool IsSafePath(const UString &path)
+{
+  return IsSafePath(path, false); // isWSL
 }

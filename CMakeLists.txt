@@ -652,7 +652,8 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Archive/7z/7zProperties.cpp
   src/CPP/7zip/Archive/7z/7zRegister.cpp
   src/CPP/7zip/Archive/7z/7zUpdate.cpp
-  src/CPP/7zip/Archive/ArchiveExports.cpp
+  # src/CPP/7zip/Archive/ArchiveExports.cpp  # REMOVED: has duplicate RegisterArc (use LoadCodecs.cpp)
+  src/CPP/7zip/Archive/ArchiveExportsStub.cpp  # Minimal stub: only CreateArchiver (for DllExports2.cpp)
   src/CPP/7zip/Archive/Cab/CabBlockInStream.cpp
   src/CPP/7zip/Archive/Cab/CabHandler.cpp
   src/CPP/7zip/Archive/Cab/CabHeader.cpp

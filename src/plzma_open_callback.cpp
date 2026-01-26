@@ -34,8 +34,30 @@
 #include <sys/stat.h>
 
 #include "CPP/7zip/Archive/DllExports2.h"
+#include "CPP/7zip/UI/Common/LoadCodecs.h"
+#include "CPP/7zip/UI/Common/OpenArchive.h"
 
 namespace plzma {
+    
+    // Global CCodecs instance for format detection
+    // Initialized once and reused for all archive operations
+    static CMyComPtr<CCodecs> g_Codecs;
+    
+    // Initialize CCodecs with all registered archive formats
+    // This loads format metadata including signatures for detection
+    static HRESULT InitializeCodecs()
+    {
+        if (g_Codecs)
+            return S_OK;  // Already initialized
+        
+        g_Codecs = new CCodecs();
+        if (!g_Codecs)
+            return E_OUTOFMEMORY;
+        
+        // Load() registers all REGISTER_ARC formats from 7zip SDK
+        // including 7z, ZIP, TAR, and their signature information
+        return g_Codecs->Load();
+    }
     
     STDMETHODIMP OpenCallback::SetTotal(const UInt64 * files, const UInt64 * bytes) throw() {
         return S_OK; // unused
@@ -84,104 +106,74 @@ namespace plzma {
     }
 
     std::tuple<OpenResult, UInt32> OpenCallback::open(CMyComPtr<IInStream> stream) {
-        auto supportedCodecs = getSortedSupportedCodecUUIDs();
-        for (unsigned i = 0; i < supportedCodecs.Size(); i++) {
-            auto result = open(stream, supportedCodecs[i]);
-            switch (std::get<0>(result)) {
-                case OpenResult::Ok:
-                    return std::make_tuple(OpenResult::Ok, std::get<1>(result));
-                case OpenResult::Cancelled:
-                    return std::make_tuple(OpenResult::Cancelled, 0);
-                case OpenResult::IncorrectCodec:
-                default:
-                    continue;
+        // Initialize CCodecs if not already done
+        // This loads all archive format metadata including signatures
+        HRESULT hr = InitializeCodecs();
+        if (hr != S_OK) {
+            return std::make_tuple(OpenResult::IncorrectCodec, 0);
+        }
+        
+        // Setup COpenOptions - matching official 7-Zip Windows app pattern
+        COpenOptions options;
+        #ifndef Z7_SFX
+        options.props = NULL;  // No custom properties
+        #endif
+        options.codecs = g_Codecs;
+        
+        // Empty types vector = try all types (auto-detect)
+        CObjectVector<COpenType> types;
+        options.types = &types;
+        
+        CIntVector excludedFormats;  // Empty = no formats excluded
+        options.excludedFormats = &excludedFormats;
+        
+        options.stdInMode = false;
+        options.stream = stream;
+        options.filePath = UString();  // Empty for stream-based opening
+        options.callback = this;  // Use this OpenCallback for progress/password
+        options.openType.FormatIndex = -1;  // -1 = auto-detect format
+        
+        // Use CArchiveLink instead of CArc
+        // CArchiveLink automatically handles nested archives (DMG/HFS, TAR.GZ, etc.)
+        CArchiveLink archiveLink;
+        HRESULT result = archiveLink.Open(options);
+        
+        if (result == S_OK && !archiveLink.Arcs.IsEmpty())
+        {
+            // Success! CArchiveLink opened the archive(s)
+            // For nested archives, Arcs contains the chain (e.g., DMG -> HFS)
+            // The last one is the innermost archive we want to show
+            const CArc &arc = archiveLink.Arcs.Back();
+            
+            if (arc.Archive) {
+                UInt32 numItems = 0;
+                arc.Archive->GetNumberOfItems(&numItems);
+                
+                // Save all archives in the chain
+                for (unsigned i = 0; i < archiveLink.Arcs.Size(); i++) {
+                    _openedArchives.Add(archiveLink.Arcs[i].Archive);
+                    if (archiveLink.Arcs[i].InStream) {
+                        _openedStreams.Add(archiveLink.Arcs[i].InStream);
+                    }
+                }
+                
+                // If no custom stream wrappers, add the original stream
+                if (_openedStreams.Size() == 0) {
+                    _openedStreams.Add(stream);
+                }
+                
+                return std::make_tuple(OpenResult::Ok, numItems);
             }
         }
+        else if (result == E_ABORT || _result == E_ABORT)
+        {
+            return std::make_tuple(OpenResult::Cancelled, 0);
+        }
+        
+        // Unable to open with any format
         return std::make_tuple(OpenResult::IncorrectCodec, 0);
     }
 
-    std::tuple<OpenResult, UInt32> OpenCallback::open(CMyComPtr<IInStream> stream, const GUID & codecGuid) {
-        IInArchive * ptr = nullptr;
-        if (CreateObject(&codecGuid, &IID_IInArchive, reinterpret_cast<void**>(&ptr)) != S_OK || !ptr) {
-            return std::make_tuple(OpenResult::IncorrectCodec, 0);
-        }
-
-        CMyComPtr<IInArchive> archive;
-        archive.Attach(ptr);
-
-        HRESULT thisResult = archive->Open(stream, nullptr, this);
-        if (thisResult == S_OK && _result == S_OK) {
-            // OK, proceed
-        } else if (thisResult == E_ABORT || _result == E_ABORT) {
-            _itemsCount = 0;
-            return std::make_tuple(OpenResult::Cancelled, 0); // aborted -> false without exception
-        } else if (_passwordRequested) {
-            throw Exception(plzma_error_code_password_needed, "Password is needed for thie archive.", __FILE__, __LINE__);
-        } else if (_exception) {
-            Exception localException(static_cast<Exception &&>(*_exception));
-            delete _exception;
-            _exception = nullptr;
-            throw localException;
-        } else {
-            NWindows::NCOM::CPropVariant prop;
-            if (archive->GetArchiveProperty(kpidErrorFlags, &prop) == S_OK && (prop.lVal & kpv_ErrorFlags_UnexpectedEnd) != 0)
-                throw Exception(plzma_error_code_unexpected_eof, "Unexpected end of file.", __FILE__, __LINE__);
-
-            // seek to zero to allow another round of detection
-            if (stream->Seek(0, STREAM_SEEK_SET, nullptr) != S_OK)
-            {
-                Exception internalException(plzma_error_code_internal, "Failed to seek to the start of the file", __FILE__, __LINE__);
-                throw internalException;
-            }
-            return std::make_tuple(OpenResult::IncorrectCodec, 0);
-        }
-
-        UInt32 numItems = 0;
-        archive->GetNumberOfItems(&numItems);
-
-        // save
-        _openedArchives.Add(archive);
-        _openedStreams.Add(stream);
-
-        // Get sub stream if needed
-        NWindows::NCOM::CPropVariant prop;
-        if (archive->GetArchiveProperty(kpidMainSubfile, &prop) != S_OK || prop.vt == VT_EMPTY) {
-            // No sub stream
-            return std::make_tuple(OpenResult::Ok, numItems);
-        }
-
-        UInt32 mainSubfile = static_cast<uint32_t>(PROPVARIANTGetUInt64(prop));
-        CMyComPtr<IInArchiveGetStream> getStream;
-        if (archive->QueryInterface(IID_IInArchiveGetStream, (void **)&getStream) != S_OK || !getStream) {
-            // cannot fetch get stream method
-            return std::make_tuple(OpenResult::Ok, numItems);
-        }
-
-        CMyComPtr<ISequentialInStream> subSeqStream;
-        if (getStream->GetStream(mainSubfile, &subSeqStream) != S_OK || !subSeqStream) {
-            // failed to get stream
-            return std::make_tuple(OpenResult::Ok, numItems);
-        }        
-
-        CMyComPtr<IInStream> subStream;
-        if (subSeqStream.QueryInterface(IID_IInStream, &subStream) != S_OK || !subStream) {
-            // is not an IINStream
-            return std::make_tuple(OpenResult::Ok, numItems);
-        }
-
-        auto newResults = open(subStream);
-        auto newResult = std::get<0>(newResults);
-        switch (newResult) {
-            case OpenResult::Ok:
-                return std::make_tuple(OpenResult::Ok, std::get<1>(newResults));
-            case OpenResult::Cancelled:
-                return std::make_tuple(OpenResult::Cancelled, 0);
-            case OpenResult::IncorrectCodec:
-            default:
-                return std::make_tuple(OpenResult::Ok, numItems);
-        }
-    }
-    
     void OpenCallback::abort() {
         LIBPLZMA_LOCKGUARD(lock, _mutex)
         _result = E_ABORT;
