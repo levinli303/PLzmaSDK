@@ -504,6 +504,14 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/7zip/Crypto/WzAes.h
   src/CPP/7zip/Crypto/ZipCrypto.h
   src/CPP/7zip/Crypto/ZipStrong.h
+  src/CPP/7zip/UI/Common/ArchiveOpenCallback.h
+  src/CPP/7zip/UI/Common/DefaultName.h
+  src/CPP/7zip/UI/Common/DirItem.h
+  src/CPP/7zip/UI/Common/LoadCodecs.h
+  src/CPP/7zip/UI/Common/OpenArchive.h
+  src/CPP/7zip/UI/Common/Property.h
+  src/CPP/7zip/UI/Common/SetProperties.h
+  src/CPP/7zip/UI/Common/StdAfx.h
   src/CPP/7zip/ICoder.h
   src/CPP/7zip/IDecl.h
   src/CPP/7zip/IPassword.h
@@ -543,6 +551,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/UTFConvert.h
   src/CPP/Common/Wildcard.h
   src/CPP/Windows/Defs.h
+  src/CPP/Windows/ErrorMsg.h
   src/CPP/Windows/FileDir.h
   src/CPP/Windows/FileFind.h
   src/CPP/Windows/FileIO.h
@@ -802,6 +811,11 @@ set(LIBPLZMA_SOURCES
   src/CPP/7zip/Crypto/WzAes.cpp
   src/CPP/7zip/Crypto/ZipCrypto.cpp
   src/CPP/7zip/Crypto/ZipStrong.cpp
+  src/CPP/7zip/UI/Common/ArchiveOpenCallback.cpp
+  src/CPP/7zip/UI/Common/DefaultName.cpp
+  src/CPP/7zip/UI/Common/LoadCodecs.cpp
+  src/CPP/7zip/UI/Common/OpenArchive.cpp
+  src/CPP/7zip/UI/Common/SetProperties.cpp
   src/CPP/Common/CRC.cpp
   src/CPP/Common/CrcReg.cpp
   src/CPP/Common/C_FileIO.cpp
@@ -818,6 +832,7 @@ set(LIBPLZMA_SOURCES
   src/CPP/Common/UTFConvert.cpp
   src/CPP/Common/Wildcard.cpp
   src/CPP/Common/XzCrc64Reg.cpp
+  src/CPP/Windows/ErrorMsg.cpp
   src/CPP/Windows/FileDir.cpp
   src/CPP/Windows/FileFind.cpp
   src/CPP/Windows/FileIO.cpp
@@ -1019,6 +1034,8 @@ source_group("C"
 source_group("CPP/Windows"
   FILES
   src/CPP/Windows/Defs.h
+  src/CPP/Windows/ErrorMsg.cpp
+  src/CPP/Windows/ErrorMsg.h
   src/CPP/Windows/FileDir.cpp
   src/CPP/Windows/FileDir.h
   src/CPP/Windows/FileFind.cpp
@@ -1332,6 +1349,23 @@ source_group("CPP/7zip/Crypto"
   src/CPP/7zip/Crypto/ZipCrypto.h
   src/CPP/7zip/Crypto/ZipStrong.cpp
   src/CPP/7zip/Crypto/ZipStrong.h
+)
+
+# ---- grop: Lzma CPP/7zip/UI/Common headers and sources ----
+source_group("CPP/7zip/UI/Common"
+  FILES
+  src/CPP/7zip/UI/Common/ArchiveOpenCallback.h
+  src/CPP/7zip/UI/Common/ArchiveOpenCallback.cpp
+  src/CPP/7zip/UI/Common/DefaultName.h
+  src/CPP/7zip/UI/Common/DefaultName.cpp
+  src/CPP/7zip/UI/Common/DirItem.h
+  src/CPP/7zip/UI/Common/LoadCodecs.h
+  src/CPP/7zip/UI/Common/LoadCodecs.cpp
+  src/CPP/7zip/UI/Common/OpenArchive.h
+  src/CPP/7zip/UI/Common/OpenArchive.cpp
+  src/CPP/7zip/UI/Common/SetProperties.h
+  src/CPP/7zip/UI/Common/SetProperties.cpp
+  src/CPP/7zip/UI/Common/StdAfx.h
 )
 
 if (LIBPLZMA_OPT_SHARED)
