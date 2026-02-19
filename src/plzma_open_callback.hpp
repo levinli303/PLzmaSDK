@@ -45,17 +45,21 @@
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/7zip/IPassword.h"
 
+#include "CPP/7zip/UI/Common/ArchiveOpenCallback.h"
+
 namespace plzma {
     enum class OpenResult {
         Ok,
         Cancelled,
         IncorrectCodec,
+        PasswordRequired,
     };
 
     class OpenCallback final :
         public IArchiveOpenCallback,
         public ICryptoGetTextPassword,
         public ICryptoGetTextPassword2,
+        public IOpenCallbackUI,
         public BaseCallback,
         public CMyUnknownImp {
     private:
@@ -83,7 +87,14 @@ namespace plzma {
         
         // ICryptoGetTextPassword2
         STDMETHOD(CryptoGetTextPassword2)(Int32 * passwordIsDefined, BSTR * password) throw() override final;
-        
+
+        // IOpenCallbackUI
+        STDMETHOD(Open_CheckBreak)() throw() override final;
+        STDMETHOD(Open_SetTotal)(const UInt64 *files, const UInt64 *bytes) throw() override final;
+        STDMETHOD(Open_SetCompleted)(const UInt64 *files, const UInt64 *bytes) throw() override final;
+        STDMETHOD(Open_Finished)() throw() override final;
+        STDMETHOD(Open_CryptoGetTextPassword)(BSTR *password) throw() override final;
+
         CMyComPtr<IInArchive> archive() const noexcept;
         bool open();
         std::tuple<OpenResult, UInt32> open(CMyComPtr<IInStream> stream);

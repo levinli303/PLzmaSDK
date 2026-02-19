@@ -76,6 +76,27 @@ namespace plzma {
         _passwordRequested = true;
         return getTextPassword(passwordIsDefined, password);
     }
+
+    STDMETHODIMP OpenCallback::Open_CheckBreak() throw() {
+        return S_OK; // unused
+    }
+
+    STDMETHODIMP OpenCallback::Open_SetTotal(const UInt64 *files, const UInt64 *bytes) throw() {
+        return S_OK; // unused
+    }
+
+    STDMETHODIMP OpenCallback::Open_SetCompleted(const UInt64 *files, const UInt64 *bytes) throw() {
+        return S_OK; // unused
+    }
+
+    STDMETHODIMP OpenCallback::Open_Finished() throw() {
+        return S_OK; // unused
+    }
+
+    STDMETHODIMP OpenCallback::Open_CryptoGetTextPassword(BSTR *password) throw() {
+        _passwordRequested = true;
+        return getTextPassword(nullptr, password);
+    }
     
     bool OpenCallback::open() {
         LIBPLZMA_UNIQUE_LOCK(lock, _mutex)
@@ -95,6 +116,8 @@ namespace plzma {
             case OpenResult::Cancelled:
                 _itemsCount = 0;
                 return false;
+            case OpenResult::PasswordRequired:
+                throw Exception(plzma_error_code_password_needed, "Password is needed for thie archive.", __FILE__, __LINE__);
             case OpenResult::IncorrectCodec:
             default:
                 Exception internalException(plzma_error_code_internal, "Can't open in archive.", __FILE__, __LINE__);
@@ -136,7 +159,7 @@ namespace plzma {
         // Use CArchiveLink instead of CArc
         // CArchiveLink automatically handles nested archives (DMG/HFS, TAR.GZ, etc.)
         CArchiveLink archiveLink;
-        HRESULT result = archiveLink.Open(options);
+        HRESULT result = archiveLink.Open2(options, this);
         
         if (result == S_OK && !archiveLink.Arcs.IsEmpty())
         {
@@ -169,7 +192,11 @@ namespace plzma {
         {
             return std::make_tuple(OpenResult::Cancelled, 0);
         }
-        
+        else if (_passwordRequested)
+        {
+            return std::make_tuple(OpenResult::PasswordRequired, 0);
+        }
+
         // Unable to open with any format
         return std::make_tuple(OpenResult::IncorrectCodec, 0);
     }
