@@ -124,7 +124,11 @@ namespace plzma {
     const Path & InFileStream::path() const noexcept {
         return _path;
     }
-    
+
+    Path InFileStream::firstFilePath() const noexcept {
+        return _path;
+    }
+
     InFileStream::InFileStream(const Path & path) : InStreamBase(),
         _path(path) {
             if (_path.count() == 0) {
@@ -421,6 +425,10 @@ namespace plzma {
         return true;
     }
     
+    Path InMultiStream::firstFilePath() const noexcept {
+        return (_streams.count() > 0) ? _streams.at(0)->firstFilePath() : Path();
+    }
+
     InMultiStream::InMultiStream(InStreamArray && streams) {
         auto inStreams = static_cast<InStreamArray &&>(streams);
         if (inStreams.count() == 0) {

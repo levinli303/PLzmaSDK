@@ -62,7 +62,8 @@ namespace plzma {
     public:
         virtual void open() = 0;
         virtual void close() = 0;
-        
+        virtual Path firstFilePath() const noexcept { return Path(); }
+
         InStreamBase();
         virtual ~InStreamBase() noexcept { }
     };
@@ -93,9 +94,10 @@ namespace plzma {
         
         virtual bool opened() const override final;
         virtual bool erase(const plzma_erase eraseType = plzma_erase_none) override final;
-        
+
         const Path & path() const noexcept;
-        
+        virtual Path firstFilePath() const noexcept override final;
+
         InFileStream(const Path & path);
         InFileStream(Path && path);
         virtual ~InFileStream() noexcept;
@@ -186,7 +188,8 @@ namespace plzma {
         
         virtual bool opened() const override final;
         virtual bool erase(const plzma_erase eraseType = plzma_erase_none) override final;
-        
+        virtual Path firstFilePath() const noexcept override final;
+
         InMultiStream(InStreamArray && streams);
         virtual ~InMultiStream() noexcept;
     };

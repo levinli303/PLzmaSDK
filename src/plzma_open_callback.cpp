@@ -152,7 +152,12 @@ namespace plzma {
         
         options.stdInMode = false;
         options.stream = stream;
-        options.filePath = UString();  // Empty for stream-based opening
+        // Provide the file path so OpenArchive.cpp can use extension-based format
+        // ordering. Without it, numMainTypes = 0 and the first phase skips all
+        // non-backward formats, causing ISO to be tried before UDF in the second
+        // phase (signature scan) and Windows install ISOs are opened as ISO9660
+        // instead of UDF.
+        options.filePath = (_initialFilePath.count() > 0) ? UString(_initialFilePath.wide()) : UString();
         options.callback = this;  // Use this OpenCallback for progress/password
         options.openType.FormatIndex = -1;  // -1 = auto-detect format
         
@@ -285,7 +290,8 @@ namespace plzma {
                                const String & passwd
 #endif
     ) : CMyUnknownImp(),
-        _initialStream(stream) {
+        _initialStream(stream),
+        _initialFilePath(stream ? stream->firstFilePath() : Path()) {
 #if !defined(LIBPLZMA_NO_CRYPTO)
             _password = passwd;
 #endif

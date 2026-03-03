@@ -64,8 +64,9 @@ namespace plzma {
         public CMyUnknownImp {
     private:
         CMyComPtr<IInStream> _initialStream;
-        CObjectVector<CMyComPtr<IInArchive>> _openedArchives; 
-        CObjectVector<CMyComPtr<IInStream>> _openedStreams; 
+        CObjectVector<CMyComPtr<IInArchive>> _openedArchives;
+        CObjectVector<CMyComPtr<IInStream>> _openedStreams;
+        Path _initialFilePath;
         plzma_size_t _itemsCount = 0;
         bool _passwordRequested = false;
         
