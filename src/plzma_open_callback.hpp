@@ -46,6 +46,7 @@
 #include "CPP/7zip/IPassword.h"
 
 #include "CPP/7zip/UI/Common/ArchiveOpenCallback.h"
+#include "CPP/Common/MyVector.h"
 
 namespace plzma {
     enum class OpenResult {
@@ -66,6 +67,7 @@ namespace plzma {
         CMyComPtr<IInStream> _initialStream;
         CObjectVector<CMyComPtr<IInArchive>> _openedArchives;
         CObjectVector<CMyComPtr<IInStream>> _openedStreams;
+        CUIntVector _itemIndices; // maps plzma index → archive index, excluding alt-stream items
         Path _initialFilePath;
         plzma_size_t _itemsCount = 0;
         bool _passwordRequested = false;

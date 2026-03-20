@@ -176,7 +176,7 @@ namespace plzma {
             if (arc.Archive) {
                 UInt32 numItems = 0;
                 arc.Archive->GetNumberOfItems(&numItems);
-                
+
                 // Save all archives in the chain
                 for (unsigned i = 0; i < archiveLink.Arcs.Size(); i++) {
                     _openedArchives.Add(archiveLink.Arcs[i].Archive);
@@ -184,13 +184,28 @@ namespace plzma {
                         _openedStreams.Add(archiveLink.Arcs[i].InStream);
                     }
                 }
-                
+
                 // If no custom stream wrappers, add the original stream
                 if (_openedStreams.Size() == 0) {
                     _openedStreams.Add(stream);
                 }
-                
-                return std::make_tuple(OpenResult::Ok, numItems);
+
+                // Build filtered index list, excluding alt-stream items (HFS+ xattrs,
+                // resource forks). These have kpidIsAltStream = true and should not be
+                // exposed as regular archive items, matching 7-zip Windows UI behavior.
+                _itemIndices.Clear();
+                for (UInt32 i = 0; i < numItems; i++) {
+                    NWindows::NCOM::CPropVariant prop;
+                    bool isAltStream = false;
+                    if (arc.Archive->GetProperty(i, kpidIsAltStream, &prop) == S_OK && prop.vt == VT_BOOL) {
+                        isAltStream = (prop.boolVal != VARIANT_FALSE);
+                    }
+                    if (!isAltStream) {
+                        _itemIndices.Add(i);
+                    }
+                }
+
+                return std::make_tuple(OpenResult::Ok, static_cast<UInt32>(_itemIndices.Size()));
             }
         }
         else if (result == E_ABORT || _result == E_ABORT)
@@ -223,10 +238,11 @@ namespace plzma {
     SharedPtr<Item> OpenCallback::initialItemAt(const plzma_size_t index) {
         auto archive = _openedArchives.Back();
         if (index < _itemsCount) {
+            const UInt32 archiveIndex = _itemIndices[static_cast<unsigned>(index)];
             NWindows::NCOM::CPropVariant path;
             SharedPtr<Item> item;
-            if (archive->GetProperty(index, kpidPath, &path) == S_OK && (path.vt == VT_EMPTY || path.vt == VT_BSTR)) {
-                item = makeShared<Item>(static_cast<Path &&>(Path(path.bstrVal)), index);
+            if (archive->GetProperty(archiveIndex, kpidPath, &path) == S_OK && (path.vt == VT_EMPTY || path.vt == VT_BSTR)) {
+                item = makeShared<Item>(static_cast<Path &&>(Path(path.bstrVal)), archiveIndex);
             }
             return item;
         }
