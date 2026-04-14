@@ -49,7 +49,6 @@ typedef struct CPpmd8_Node_
 
 #define NODE(r)  Ppmd_GetPtr_Type(p, r, CPpmd8_Node)
 
-#ifdef _WIN32
 void Ppmd8_Construct(CPpmd8 *p)
 {
   unsigned i, k, m;
@@ -102,7 +101,7 @@ BoolInt Ppmd8_Alloc(CPpmd8 *p, UInt32 size, ISzAllocPtr alloc)
   }
   return True;
 }
-#endif
+
 
 
 // ---------- Internal Memory Allocator ----------
@@ -512,14 +511,13 @@ void Ppmd8_RestartModel(CPpmd8 *p)
   p->DummySee.Count = 64; /* unused */
 }
 
-#ifdef _WIN32
+
 void Ppmd8_Init(CPpmd8 *p, unsigned maxOrder, unsigned restoreMethod)
 {
   p->MaxOrder = maxOrder;
   p->RestoreMethod = restoreMethod;
   Ppmd8_RestartModel(p);
 }
-#endif
 
 
 #define FLAG_RESCALED  (1 << 2)
@@ -1432,7 +1430,7 @@ static void Ppmd8_Rescale(CPpmd8 *p)
   }
 }
 
-#ifdef _WIN32
+
 CPpmd_See *Ppmd8_MakeEscFreq(CPpmd8 *p, unsigned numMasked1, UInt32 *escFreq)
 {
   CPpmd_See *see;
@@ -1461,7 +1459,7 @@ CPpmd_See *Ppmd8_MakeEscFreq(CPpmd8 *p, unsigned numMasked1, UInt32 *escFreq)
   }
   return see;
 }
-#endif
+
  
 static void Ppmd8_NextContext(CPpmd8 *p)
 {
@@ -1472,7 +1470,7 @@ static void Ppmd8_NextContext(CPpmd8 *p)
     Ppmd8_UpdateModel(p);
 }
  
-#ifdef _WIN32
+
 void Ppmd8_Update1(CPpmd8 *p)
 {
   CPpmd_State *s = p->FoundState;
@@ -1506,7 +1504,7 @@ void Ppmd8_Update1_0(CPpmd8 *p)
     Ppmd8_Rescale(p);
   Ppmd8_NextContext(p);
 }
-#endif
+
 
 /*
 void Ppmd8_UpdateBin(CPpmd8 *p)
@@ -1519,7 +1517,6 @@ void Ppmd8_UpdateBin(CPpmd8 *p)
 }
 */
 
-#ifdef _WIN32
 void Ppmd8_Update2(CPpmd8 *p)
 {
   CPpmd_State *s = p->FoundState;
@@ -1532,7 +1529,6 @@ void Ppmd8_Update2(CPpmd8 *p)
     Ppmd8_Rescale(p);
   Ppmd8_UpdateModel(p);
 }
-#endif
 
 /* H->I changes:
   NS2Indx

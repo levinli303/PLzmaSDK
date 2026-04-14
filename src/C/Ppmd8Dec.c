@@ -60,7 +60,7 @@ void Ppmd8_UpdateModel(CPpmd8 *p);
 
 #define MASK(sym)  ((Byte *)charMask)[sym]
 
-#ifdef _WIN32
+
 int Ppmd8_DecodeSymbol(CPpmd8 *p)
 {
   size_t charMask[256 / sizeof(size_t)];
@@ -277,7 +277,7 @@ int Ppmd8_DecodeSymbol(CPpmd8 *p)
     while (s != s2);
   }
 }
-#endif
+
 #undef kTop
 #undef kBot
 #undef READ_BYTE
