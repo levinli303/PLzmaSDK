@@ -425,6 +425,7 @@ REGISTER_ARC_I(
   IsArc_Udf)
 
 }}
+
 #if defined(LIBPLZMA_USING_REGISTRATORS)
 uint64_t plzma_registrator_35(void) {
     return NArchive::NUdf::g_ArcInfo.Flags;
