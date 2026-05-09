@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2025 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2026 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,7 @@ namespace plzma {
     /// CDecoder default: 1 << 22
     LIBPLZMA_CPP_API_PRIVATE(plzma_size_t) kDecoderWriteSize;
     
-    LIBPLZMA_CPP_API_PRIVATE(void) initialize(void);
+    LIBPLZMA_CPP_API_PRIVATE(void) initialize(void) noexcept;
 
 } // namespace plzma
 

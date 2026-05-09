@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2025 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2026 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -509,7 +509,7 @@ plzma_size_t kDecoderReadSize = static_cast<unsigned int>(1) << 20;
 plzma_size_t kDecoderWriteSize = static_cast<unsigned int>(1) << 22;
 #endif // LIBPLZMA_PLATFORM_MOBILE
 
-    void initialize(void) {
+    void initialize(void) noexcept {
         static bool notInitalized = true;
         if (notInitalized) {
 #if defined(LIBPLZMA_USING_REGISTRATORS)

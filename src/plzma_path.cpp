@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2025 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2026 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -287,7 +287,7 @@ namespace plzma {
             const errno_t err = ::_wfopen_s(&f, wide(), wmode);
             return (err == 0) ? f : nullptr;
 #  else
-            return _wfopen(wide(), wmode);
+            return ::_wfopen(wide(), wmode);
 #  endif
         }
         return nullptr;

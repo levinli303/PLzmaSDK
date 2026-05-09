@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2025 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2026 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,11 +37,11 @@
 
 // plzma_private.h
 #if !defined(LIBPLZMA_HAVE_STD) && (defined(SWIFT_PACKAGE) || defined(COCOAPODS))
-#define LIBPLZMA_HAVE_STD 1
+#  define LIBPLZMA_HAVE_STD 1
 #endif
 
 #if defined(LIBPLZMA_HAVE_STD)
-#include <exception>
+#  include <exception>
 #endif
 
 // Creating

@@ -3,7 +3,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 - 2025 Oleh Kulykov <olehkulykov@gmail.com>
+// Copyright (c) 2015 - 2026 Oleh Kulykov <olehkulykov@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,12 +44,12 @@
 /// and all optional C bindings to the internal C++ part(Core) of the library.
 /// Everything what you need to use this library in C | Objective-C | Swift env. is here.
 
-/// @brief Manualy defined version of the library, i.e. 1.5.1
+/// @brief Manualy defined version of the library, i.e. 1.6.1
 /// The optinal \a LIBPLZMA_VERSION_BUILD might be befined by the CI or CMake or manualy.
 /// Conforms 'Semantic Versioning 2.0.0'.
 /// @link https://semver.org
 #define LIBPLZMA_VERSION_MAJOR 1
-#define LIBPLZMA_VERSION_MINOR 5
+#define LIBPLZMA_VERSION_MINOR 6
 #define LIBPLZMA_VERSION_PATCH 1
 
 // Check Windows
