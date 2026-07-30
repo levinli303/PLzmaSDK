@@ -550,7 +550,7 @@ set(LIBPLZMA_INTERNAL_HEADERS
   src/CPP/Common/StringToInt.h
   src/CPP/Common/UTFConvert.h
   src/CPP/Common/Wildcard.h
-  src/CPP/Windows/Defs.h
+  src/CPP/Windows/WinDefs.h
   src/CPP/Windows/ErrorMsg.h
   src/CPP/Windows/FileDir.h
   src/CPP/Windows/FileFind.h
@@ -1034,7 +1034,7 @@ source_group("C"
 # ---- grop: Lzma CPP/Windows headers and sources ----
 source_group("CPP/Windows"
   FILES
-  src/CPP/Windows/Defs.h
+  src/CPP/Windows/WinDefs.h
   src/CPP/Windows/ErrorMsg.cpp
   src/CPP/Windows/ErrorMsg.h
   src/CPP/Windows/FileDir.cpp
