@@ -30,6 +30,7 @@
 #include "plzma_common.hpp"
 
 #include <stdlib.h>
+#include <cwchar>
 
 namespace plzma {
     
