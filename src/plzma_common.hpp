@@ -49,6 +49,13 @@ namespace plzma {
 
     LIBPLZMA_CPP_API_PRIVATE(FILETIME) UnixTimeToFILETIME(const time_t t) noexcept;
     
+    /// 7-Zip strings hold UTF-16 code units even where wchar_t is 32-bit, so characters outside
+    /// the BMP are surrogate pairs. Combines them into single characters for plzma strings.
+    LIBPLZMA_CPP_API_PRIVATE(UString) WideFrom7Zip(const wchar_t * LIBPLZMA_NULLABLE str);
+    
+    /// Splits characters outside the BMP of a plzma string into the surrogate pairs 7-Zip expects.
+    LIBPLZMA_CPP_API_PRIVATE(UString) WideTo7Zip(const wchar_t * LIBPLZMA_NULLABLE str);
+    
 } // namespace plzma
 
 #endif // !__PLZMA_COMMON_HPP__

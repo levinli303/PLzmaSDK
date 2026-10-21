@@ -76,4 +76,46 @@ namespace plzma {
         FT.dwHighDateTime = static_cast<DWORD>(ll >> 32);
         return FT;
     }
+    
+    UString WideFrom7Zip(const wchar_t * str) {
+        UString result;
+        if (!str) {
+            return result;
+        }
+#if WCHAR_MAX > 0xffff
+        while (*str) {
+            uint32_t c = static_cast<uint32_t>(*str++);
+            const uint32_t next = static_cast<uint32_t>(*str);
+            if (c >= 0xd800 && c < 0xdc00 && next >= 0xdc00 && next < 0xe000) {
+                c = 0x10000 + ((c - 0xd800) << 10) + (next - 0xdc00);
+                str++;
+            }
+            result += static_cast<wchar_t>(c);
+        }
+#else
+        result = str;
+#endif
+        return result;
+    }
+    
+    UString WideTo7Zip(const wchar_t * str) {
+        UString result;
+        if (!str) {
+            return result;
+        }
+#if WCHAR_MAX > 0xffff
+        while (*str) {
+            uint32_t c = static_cast<uint32_t>(*str++);
+            if (c >= 0x10000 && c < 0x110000) {
+                c -= 0x10000;
+                result += static_cast<wchar_t>(0xd800 + (c >> 10));
+                c = 0xdc00 + (c & 0x3ff);
+            }
+            result += static_cast<wchar_t>(c);
+        }
+#else
+        result = str;
+#endif
+        return result;
+    }
 }

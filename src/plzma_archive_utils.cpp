@@ -69,7 +69,7 @@ namespace plzma {
                 stat.setIsSymbolicLink(true);
                 prop.Clear();
                 if (archive->GetProperty(index, kpidSymLink, &prop) == S_OK && prop.vt == VT_BSTR) {
-                    stat.setSymbolicLink(String(prop.bstrVal));
+                    stat.setSymbolicLink(String(WideFrom7Zip(prop.bstrVal).Ptr()));
                 }
             }
         }

@@ -92,7 +92,7 @@ namespace plzma {
         NWindows::NCOM::CPropVariant pathProp;
         if (_archive->GetProperty(index, kpidPath, &pathProp) == S_OK &&
             (pathProp.vt == VT_EMPTY || pathProp.vt == VT_BSTR)) {
-                itemPath.set(pathProp.bstrVal);
+                itemPath.set(WideFrom7Zip(pathProp.bstrVal).Ptr());
         }
 #endif
         
@@ -130,7 +130,7 @@ namespace plzma {
         
         NWindows::NCOM::CPropVariant prop;
         if (_archive->GetProperty(index, kpidPath, &prop) == S_OK && prop.vt == VT_BSTR) {
-            itemPath.set(prop.bstrVal);
+            itemPath.set(WideFrom7Zip(prop.bstrVal).Ptr());
         }
         
         if (itemPath.count() == 0) {

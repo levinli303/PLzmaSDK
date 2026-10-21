@@ -116,7 +116,7 @@ namespace plzma {
             NWindows::NCOM::CPropVariant prop;
             switch (propID) {
                 case kpidIsAnti: prop = false; break;
-                case kpidPath: prop = _source.archivePath.wide(); break;
+                case kpidPath: prop = WideTo7Zip(_source.archivePath.wide()); break;
                 case kpidIsDir: prop = _source.isDir; break;
                 case kpidSize: prop = _source.stat.size(); break;
                 //case kpidAttrib: prop = dirItem.Attrib; break; // 9
@@ -126,7 +126,7 @@ namespace plzma {
                 
                 case kpidSymLink:
                     if (_source.stat.isSymbolicLink()) {
-                        prop = _source.stat.symbolicLink().wide();
+                        prop = WideTo7Zip(_source.stat.symbolicLink().wide());
                     } else {
                         prop = L"";
                     }

@@ -47,7 +47,7 @@ namespace plzma {
                 return _result;
             }
             if (_password.count() > 0) {
-                _result = StringToBstr(_password.wide(), password);
+                _result = StringToBstr(WideTo7Zip(_password.wide()), password);
                 LIBPLZMA_SET_VALUE_TO_PTR(passwordIsDefined, BoolToInt(_result == S_OK))
             } else {
                 LIBPLZMA_SET_VALUE_TO_PTR(passwordIsDefined, BoolToInt(false))

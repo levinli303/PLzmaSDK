@@ -157,7 +157,7 @@ namespace plzma {
         // non-backward formats, causing ISO to be tried before UDF in the second
         // phase (signature scan) and Windows install ISOs are opened as ISO9660
         // instead of UDF.
-        options.filePath = (_initialFilePath.count() > 0) ? UString(_initialFilePath.wide()) : UString();
+        options.filePath = (_initialFilePath.count() > 0) ? WideTo7Zip(_initialFilePath.wide()) : UString();
         options.callback = this;  // Use this OpenCallback for progress/password
         options.openType.FormatIndex = -1;  // -1 = auto-detect format
         
@@ -242,7 +242,7 @@ namespace plzma {
             NWindows::NCOM::CPropVariant path;
             SharedPtr<Item> item;
             if (archive->GetProperty(archiveIndex, kpidPath, &path) == S_OK && (path.vt == VT_EMPTY || path.vt == VT_BSTR)) {
-                item = makeShared<Item>(static_cast<Path &&>(Path(path.bstrVal)), archiveIndex);
+                item = makeShared<Item>(static_cast<Path &&>(Path(WideFrom7Zip(path.bstrVal).Ptr())), archiveIndex);
             }
             return item;
         }
