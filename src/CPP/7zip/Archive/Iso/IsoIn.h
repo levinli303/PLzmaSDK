@@ -266,6 +266,7 @@ class CInArchive
 
   void SeekToBlock(UInt32 blockIndex);
   void ReadDir(CDir &d, int level);
+  bool PrimaryVolumeHasSusp();
   void CreateRefs(CDir &d);
 
   void ReadBootInfo();

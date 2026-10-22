@@ -511,6 +511,39 @@ void CInArchive::ReadBootInfo()
   HeadersError = error;
 }
 
+bool CInArchive::PrimaryVolumeHasSusp()
+{
+  const int savedIndex = MainVolDescIndex;
+  const UInt64 savedPhySize = PhySize;
+  bool res = false;
+  MainVolDescIndex = 0;
+  const CVolumeDescriptor &primary = VolDescs[0];
+  if (primary.LogicalBlockSize == kBlockSize && primary.RootDirRecord.IsDir())
+  {
+    try
+    {
+      SeekToBlock(primary.RootDirRecord.ExtentLocation);
+      const Byte len = ReadByte();
+      if (len >= 34)
+      {
+        CDirRecord r;
+        ReadDirRecord2(r, len);
+        unsigned skipSize;
+        unsigned pxLen;
+        // SUSP alone isn't enough: e.g. hdiutil writes SUSP without Rock Ridge.
+        res = r.CheckSusp(skipSize) && r.FindSuspRecord(skipSize, 'P', 'X', pxLen) != NULL;
+      }
+    }
+    catch(const CSystemException &) {}
+    catch(CUnexpectedEndException &) {}
+    catch(CHeaderErrorException &) {}
+    catch(CEndianErrorException &) {}
+  }
+  MainVolDescIndex = savedIndex;
+  PhySize = savedPhySize;
+  return res;
+}
+
 HRESULT CInArchive::Open2()
 {
   _position = 0;
@@ -595,9 +628,10 @@ HRESULT CInArchive::Open2()
   for (MainVolDescIndex = (int)VolDescs.Size() - 1; MainVolDescIndex > 0; MainVolDescIndex--)
     if (VolDescs[MainVolDescIndex].IsJoliet())
       break;
-  /* FIXME: some volume can contain Rock Ridge, that is better than
-     Joliet volume. So we need some way to detect such case */
-  // MainVolDescIndex = 0; // to read primary volume
+  // Rock Ridge on the primary volume keeps POSIX names, modes and symlinks,
+  // which the Joliet tree lacks, so prefer it when present.
+  if (MainVolDescIndex > 0 && PrimaryVolumeHasSusp())
+    MainVolDescIndex = 0;
   const CVolumeDescriptor &vd = VolDescs[MainVolDescIndex];
   if (vd.LogicalBlockSize != kBlockSize)
     return S_FALSE;

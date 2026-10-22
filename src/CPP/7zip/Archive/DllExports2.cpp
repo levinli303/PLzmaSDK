@@ -73,7 +73,9 @@ BOOL WINAPI DllMain(
 static __attribute__((constructor)) void Init_ForceToUTF8();
 static __attribute__((constructor)) void Init_ForceToUTF8()
 {
-  g_ForceToUTF8 = IsNativeUTF8();
+  // libplzma's API is UTF-8, so multibyte archive names (e.g. ISO Rock Ridge)
+  // must not depend on the host process locale, which is "C" by default.
+  g_ForceToUTF8 = true;
   // printf("\nDLLExports2.cpp::Init_ForceToUTF8 =%d\n", g_ForceToUTF8 ? 1 : 0);
 }
 

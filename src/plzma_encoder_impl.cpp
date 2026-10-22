@@ -37,8 +37,46 @@
 
 #include <stdint.h>
 #include <limits.h>
+#include <string.h>
+
+#if defined(LIBPLZMA_POSIX)
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 namespace plzma {
+
+#if defined(LIBPLZMA_POSIX)
+    // Symbolic links are added as links, with their target as data, like `7z a -snl`,
+    // instead of the items they point to, which might not even exist.
+    static bool isSymbolicLink(const Path & path) {
+        struct stat statbuf;
+        return ::lstat(path.utf8(), &statbuf) == 0 && S_ISLNK(statbuf.st_mode);
+    }
+
+    static bool symbolicLinkStat(const Path & path, Stat & stat) {
+        struct stat statbuf;
+        if (::lstat(path.utf8(), &statbuf) != 0 || !S_ISLNK(statbuf.st_mode)) {
+            return false;
+        }
+        const size_t bufferSize = (statbuf.st_size > 0 ? static_cast<size_t>(statbuf.st_size) : PATH_MAX) + 1;
+        RawHeapMemory memory(bufferSize);
+        char * buffer = static_cast<char *>(memory);
+        const ssize_t length = ::readlink(path.utf8(), buffer, bufferSize);
+        if (length <= 0 || static_cast<size_t>(length) >= bufferSize) {
+            return false;
+        }
+        buffer[length] = 0;
+        stat.setCreation(statbuf.st_ctime);
+        stat.setLastAccess(statbuf.st_atime);
+        stat.setLastModification(statbuf.st_mtime);
+        stat.setPermissions(statbuf.st_mode & 0777);
+        stat.setIsSymbolicLink(true);
+        stat.setSymbolicLink(String(static_cast<const char *>(buffer)));
+        stat.setSize(static_cast<uint64_t>(length));
+        return true;
+    }
+#endif
     
     void EncoderImpl::retain() {
 #if defined(LIBPLZMA_THREAD_UNSAFE)
@@ -119,7 +157,16 @@ namespace plzma {
                 case kpidPath: prop = WideTo7Zip(_source.archivePath.wide()); break;
                 case kpidIsDir: prop = _source.isDir; break;
                 case kpidSize: prop = _source.stat.size(); break;
-                //case kpidAttrib: prop = dirItem.Attrib; break; // 9
+                case kpidAttrib:
+#if defined(LIBPLZMA_POSIX)
+                    // The 7z and zip handlers only read the Unix mode from here
+                    {
+                        UInt32 mode = _source.isDir ? S_IFDIR : (_source.stat.isSymbolicLink() ? S_IFLNK : S_IFREG);
+                        mode |= _source.stat.hasPermissions() ? _source.stat.permissions() : (_source.isDir ? 0755 : 0644);
+                        prop = static_cast<UInt32>((_source.isDir ? FILE_ATTRIBUTE_DIRECTORY : 0) | FILE_ATTRIBUTE_UNIX_EXTENSION | (mode << 16));
+                    }
+#endif
+                    break;
                 case kpidCTime: prop = UnixTimeToFILETIME(_source.stat.creation()); break;
                 case kpidATime: prop = UnixTimeToFILETIME(_source.stat.lastAccess()); break;
                 case kpidMTime: prop = UnixTimeToFILETIME(_source.stat.lastModification()); break;
@@ -182,7 +229,12 @@ namespace plzma {
             }
             
             if (!_source.stream) {
-                _source.stream = SharedPtr<InStreamBase>(new InFileStream(static_cast<Path &&>(_source.path)));
+                if (_source.stat.isSymbolicLink()) {
+                    const char * target = _source.stat.symbolicLink().utf8();
+                    _source.stream = SharedPtr<InStreamBase>(new InMemStream(target, ::strlen(target)));
+                } else {
+                    _source.stream = SharedPtr<InStreamBase>(new InFileStream(static_cast<Path &&>(_source.path)));
+                }
             }
             
             InStreamBase * baseStream = _source.stream.get();
@@ -304,7 +356,12 @@ namespace plzma {
             throw Exception(plzma_error_code_invalid_arguments, "Can't add empty path.", __FILE__, __LINE__);
         }
         bool isDir = false;
-        if (path.exists(&isDir)) {
+#if defined(LIBPLZMA_POSIX)
+        const bool exists = isSymbolicLink(path) || path.exists(&isDir);
+#else
+        const bool exists = path.exists(&isDir);
+#endif
+        if (exists) {
             for (plzma_size_t i = 0, n = _paths.count(); i < n; i++) {
                 const auto & ap = _paths.at(i);
                 if (ap.path == path) {
@@ -375,7 +432,13 @@ namespace plzma {
                 AddedFile item;
                 item.path = static_cast<Path &&>(addedPath.path); // full path, move
                 item.archivePath = static_cast<Path &&>(rootArchivePath); // move, no longer needed
+#if defined(LIBPLZMA_POSIX)
+                if (!symbolicLinkStat(item.path, item.stat)) {
+                    item.stat = item.path.stat();
+                }
+#else
                 item.stat = item.path.stat();
+#endif
                 _files.push(static_cast<AddedFile &&>(item));
                 itemsCount++;
             }
