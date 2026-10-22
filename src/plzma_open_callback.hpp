@@ -54,6 +54,7 @@ namespace plzma {
         Cancelled,
         IncorrectCodec,
         PasswordRequired,
+        UnexpectedEnd,
     };
 
     class OpenCallback final :

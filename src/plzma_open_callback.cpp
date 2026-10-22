@@ -118,6 +118,8 @@ namespace plzma {
                 return false;
             case OpenResult::PasswordRequired:
                 throw Exception(plzma_error_code_password_needed, "Password is needed for thie archive.", __FILE__, __LINE__);
+            case OpenResult::UnexpectedEnd:
+                throw Exception(plzma_error_code_unexpected_eof, "Unexpected end of archive.", __FILE__, __LINE__);
             case OpenResult::IncorrectCodec:
             default:
                 Exception internalException(plzma_error_code_internal, "Can't open in archive.", __FILE__, __LINE__);
@@ -157,7 +159,9 @@ namespace plzma {
         // non-backward formats, causing ISO to be tried before UDF in the second
         // phase (signature scan) and Windows install ISOs are opened as ISO9660
         // instead of UDF.
-        options.filePath = (_initialFilePath.count() > 0) ? WideTo7Zip(_initialFilePath.wide()) : UString();
+        // Only the file name is needed since the stream is provided. It's also used as the item
+        // name of split volumes (.001) that don't contain an archive, which must not be a full path.
+        options.filePath = (_initialFilePath.count() > 0) ? WideTo7Zip(_initialFilePath.lastComponent().wide()) : UString();
         options.callback = this;  // Use this OpenCallback for progress/password
         options.openType.FormatIndex = -1;  // -1 = auto-detect format
         
@@ -166,6 +170,19 @@ namespace plzma {
         CArchiveLink archiveLink;
         HRESULT result = archiveLink.Open2(options, this);
         
+        if (result == S_OK && !archiveLink.Arcs.IsEmpty() && !archiveLink.NonOpen_ArcPath.IsEmpty())
+        {
+            // An archive nested in the opened one failed to open, e.g. a 7z archive split into
+            // .001 volumes. Report why instead of listing the outer container.
+            if (_passwordRequested) {
+                return std::make_tuple(OpenResult::PasswordRequired, 0);
+            }
+            const CArcErrorInfo & errorInfo = archiveLink.NonOpen_ErrorInfo;
+            if (errorInfo.IsArc_After_NonOpen() && (errorInfo.ErrorFlags & kpv_ErrorFlags_UnexpectedEnd)) {
+                return std::make_tuple(OpenResult::UnexpectedEnd, 0);
+            }
+        }
+
         if (result == S_OK && !archiveLink.Arcs.IsEmpty())
         {
             // Success! CArchiveLink opened the archive(s)
