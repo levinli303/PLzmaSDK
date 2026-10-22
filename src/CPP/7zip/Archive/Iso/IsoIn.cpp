@@ -332,6 +332,52 @@ void CInArchive::SeekToBlock(UInt32 blockIndex)
 
 static const int kNumLevelsMax = 256;
 
+void CInArchive::ResolveChildLink(CDir &d)
+{
+  // Rock Ridge relocates deep directories (usually to "rr_moved"), and leaves a
+  // file with a CL entry, the location of the directory, at the original place.
+  unsigned len;
+  const Byte *p = d.FindSuspRecord(SuspSkipSize, 'C', 'L', len);
+  UInt32 location;
+  if (!p || len < 8 || !CDirRecord::GetLe32Be32(p, location))
+    return;
+  // Each relocated directory is linked once, so that crafted links can't
+  // multiply the tree.
+  if (ChildLinkLocations.FindInSorted(location) >= 0)
+    return;
+  FOR_VECTOR (i, UniqStartLocations)
+    if (UniqStartLocations[i] == location)
+    {
+      SelfLinkedDirs = true;
+      return;
+    }
+  try
+  {
+    SeekToBlock(location);
+    const Byte recordLen = ReadByte();
+    if (recordLen < 34)
+      return;
+    CDirRecord self;
+    ReadDirRecord2(self, recordLen);
+    if (!self.IsDir() || !self.IsSystemItem() || self.ExtentLocation != location)
+      return;
+    d.ExtentLocation = location;
+    d.Size = self.Size;
+    d.FileFlags = (Byte)(d.FileFlags | NFileFlags::kDirectory);
+    ChildLinkLocations.AddToUniqueSorted(location);
+    // The placeholder is a file, so its ISO 9660 name can have a version (";1").
+    for (size_t i = 0; i < d.FileId.Size(); i++)
+      if (d.FileId[i] == ';')
+      {
+        d.FileId.ChangeSize_KeepData(i, i);
+        break;
+      }
+  }
+  catch(CUnexpectedEndException &) { HeadersError = true; }
+  catch(CHeaderErrorException &) { HeadersError = true; }
+  catch(CEndianErrorException &) { HeadersError = true; }
+}
+
 void CInArchive::ReadDir(CDir &d, int level)
 {
   if (!d.IsDir())
@@ -374,10 +420,59 @@ void CInArchive::ReadDir(CDir &d, int level)
 
     firstItem = false;
   }
+  if (IsSusp)
+    FOR_VECTOR (i, d._subItems)
+      if (!d._subItems[i].IsDir())
+        ResolveChildLink(d._subItems[i]);
   FOR_VECTOR (i, d._subItems)
-    ReadDir(d._subItems[i], level + 1);
+    if (!IsRelocatedDir(d._subItems[i]))
+      ReadDir(d._subItems[i], level + 1);
 
   UniqStartLocations.DeleteBack();
+}
+
+bool CInArchive::IsRelocatedDir(const CDir &d) const
+{
+  unsigned len;
+  return IsSusp && d.IsDir() && d.FindSuspRecord(SuspSkipSize, 'R', 'E', len) != NULL;
+}
+
+bool CInArchive::ReadRelocatedDirs(CDir &d, int level)
+{
+  bool removed = false;
+  for (unsigned i = 0; i < d._subItems.Size();)
+  {
+    CDir &subItem = d._subItems[i];
+    if (IsRelocatedDir(subItem))
+    {
+      // A relocated directory (RE) is shown at the place of the CL entry that
+      // links it, or where it is when nothing links it.
+      if (ChildLinkLocations.FindInSorted(subItem.ExtentLocation) >= 0)
+      {
+        d._subItems.Delete(i);
+        removed = true;
+        continue;
+      }
+      // Ancestors aren't known here, so read each relocated directory once to
+      // stop cycles.
+      ChildLinkLocations.AddToUniqueSorted(subItem.ExtentLocation);
+      ReadDir(subItem, level + 1);
+      // "rr_moved" can have an RE entry too.
+      if (ReadRelocatedDirs(subItem, level + 1))
+      {
+        d._subItems.Delete(i);
+        removed = true;
+        continue;
+      }
+      i++;
+    }
+    else if (subItem.IsDir() && ReadRelocatedDirs(subItem, level + 1))
+      d._subItems.Delete(i);
+    else
+      i++;
+  }
+  // Hide a directory that only held relocated directories, like "rr_moved".
+  return removed && d._subItems.IsEmpty();
 }
 
 void CInArchive::CreateRefs(CDir &d)
@@ -649,6 +744,8 @@ HRESULT CInArchive::Open2()
 
   (CDirRecord &)_rootDir = vd.RootDirRecord;
   ReadDir(_rootDir, 0);
+  if (IsSusp)
+    ReadRelocatedDirs(_rootDir, 0);
   CreateRefs(_rootDir);
   ReadBootInfo();
 
@@ -726,6 +823,7 @@ void CInArchive::Clear()
   SelfLinkedDirs = false;
 
   UniqStartLocations.Clear();
+  ChildLinkLocations.Clear();
 
   Refs.Clear();
   _rootDir.Clear();

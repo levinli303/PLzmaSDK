@@ -265,7 +265,10 @@ class CInArchive
   void ReadVolumeDescriptor(CVolumeDescriptor &d);
 
   void SeekToBlock(UInt32 blockIndex);
+  void ResolveChildLink(CDir &d);
   void ReadDir(CDir &d, int level);
+  bool IsRelocatedDir(const CDir &d) const;
+  bool ReadRelocatedDirs(CDir &d, int level);
   bool PrimaryVolumeHasSusp();
   void CreateRefs(CDir &d);
 
@@ -299,6 +302,7 @@ public:
   int _expand_BootEntries_index;
 
   CRecordVector<UInt32> UniqStartLocations;
+  CRecordVector<UInt32> ChildLinkLocations;
 
   void UpdatePhySize(const UInt32 blockIndex, const UInt64 size)
   {

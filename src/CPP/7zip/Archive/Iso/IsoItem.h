@@ -104,7 +104,8 @@ struct CDirRecord
       return NULL;
     const Byte *p = (const Byte *)SystemUse + skipSize;
     unsigned rem = (unsigned)(SystemUse.Size() - skipSize);
-    while (rem >= 5)
+    // Records without data (like RE) are only 4 bytes long.
+    while (rem >= 4)
     {
       unsigned len = p[2];
       if (len < 3 || len > rem)
