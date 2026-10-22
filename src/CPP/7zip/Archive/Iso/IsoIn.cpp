@@ -332,6 +332,73 @@ void CInArchive::SeekToBlock(UInt32 blockIndex)
 
 static const int kNumLevelsMax = 256;
 
+static const unsigned kNumContinuationAreasMax = 16;
+
+// Returns the end of the SUSP records in SystemUse from offset, and finds the
+// last CE record among them.
+static unsigned FindSuspAreaEnd(const CDirRecord &d, unsigned offset, const Byte *&ce)
+{
+  ce = NULL;
+  const Byte *p = (const Byte *)d.SystemUse;
+  const unsigned size = (unsigned)d.SystemUse.Size();
+  while (size - offset >= 4)
+  {
+    const Byte *r = p + offset;
+    const unsigned len = r[2];
+    if (len < 4 || len > size - offset || (r[0] == 'S' && r[1] == 'T'))
+      break;
+    if (r[0] == 'C' && r[1] == 'E' && r[3] == 1 && len == 4 + 24)
+      ce = r + 4;
+    offset += len;
+  }
+  return offset;
+}
+
+void CInArchive::ReadSuspContinuation(CDir &d)
+{
+  // SUSP records can continue in continuation areas, which CE records chain.
+  if (d.SystemUse.Size() < SuspSkipSize)
+    return;
+  UInt32 visited[kNumContinuationAreasMax][2];
+  unsigned numVisited = 0;
+  unsigned areaStart = SuspSkipSize;
+  for (;;)
+  {
+    const Byte *ce;
+    const unsigned areaEnd = FindSuspAreaEnd(d, areaStart, ce);
+    UInt32 block, offset, size;
+    if (!ce
+        || !CDirRecord::GetLe32Be32(ce, block)
+        || !CDirRecord::GetLe32Be32(ce + 8, offset)
+        || !CDirRecord::GetLe32Be32(ce + 16, size)
+        || size == 0 || offset > kBlockSize || size > kBlockSize - offset)
+      return;
+    for (unsigned i = 0; i < numVisited; i++)
+      if (visited[i][0] == block && visited[i][1] == offset)
+        return;
+    if (numVisited == kNumContinuationAreasMax)
+    {
+      HeadersError = true;
+      return;
+    }
+    visited[numVisited][0] = block;
+    visited[numVisited][1] = offset;
+    numVisited++;
+    CByteBuffer joined;
+    joined.Alloc(areaEnd + size);
+    memcpy(joined, d.SystemUse, areaEnd);
+    try
+    {
+      SeekToBlock(block);
+      Skip(offset);
+      ReadBytes((Byte *)joined + areaEnd, size);
+    }
+    catch(CUnexpectedEndException &) { HeadersError = true; return; }
+    d.SystemUse = joined;
+    areaStart = areaEnd;
+  }
+}
+
 void CInArchive::ResolveChildLink(CDir &d)
 {
   // Rock Ridge relocates deep directories (usually to "rr_moved"), and leaves a
@@ -422,8 +489,13 @@ void CInArchive::ReadDir(CDir &d, int level)
   }
   if (IsSusp)
     FOR_VECTOR (i, d._subItems)
-      if (!d._subItems[i].IsDir())
-        ResolveChildLink(d._subItems[i]);
+    {
+      CDir &subItem = d._subItems[i];
+      ReadSuspContinuation(subItem);
+      subItem.ReadSuspName(SuspSkipSize);
+      if (!subItem.IsDir())
+        ResolveChildLink(subItem);
+    }
   FOR_VECTOR (i, d._subItems)
     if (!IsRelocatedDir(d._subItems[i]))
       ReadDir(d._subItems[i], level + 1);

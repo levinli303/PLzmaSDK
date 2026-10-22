@@ -77,6 +77,8 @@ struct CDirRecord
   UInt16 VolSequenceNumber;
   CByteBuffer FileId;
   CByteBuffer SystemUse;
+  // The joined Rock Ridge name (NM records).
+  CByteBuffer SuspName;
 
   bool AreMultiPartEqualWith(const CDirRecord &a) const
   {
@@ -97,13 +99,14 @@ struct CDirRecord
   }
 
   
-  const Byte* FindSuspRecord(unsigned skipSize, Byte id0, Byte id1, unsigned &lenRes) const
+  // Finds the next record with the id at or after offset, and moves offset past it.
+  const Byte* FindNextSuspRecord(unsigned &offset, Byte id0, Byte id1, unsigned &lenRes) const
   {
     lenRes = 0;
-    if (SystemUse.Size() < skipSize)
+    if (SystemUse.Size() < offset)
       return NULL;
-    const Byte *p = (const Byte *)SystemUse + skipSize;
-    unsigned rem = (unsigned)(SystemUse.Size() - skipSize);
+    const Byte *p = (const Byte *)SystemUse + offset;
+    unsigned rem = (unsigned)(SystemUse.Size() - offset);
     // Records without data (like RE) are only 4 bytes long.
     while (rem >= 4)
     {
@@ -115,6 +118,7 @@ struct CDirRecord
         if (len < 4)
           return NULL; // Check it
         lenRes = len - 4;
+        offset = (unsigned)(p + len - (const Byte *)SystemUse);
         return p + 4;
       }
       p += len;
@@ -123,22 +127,56 @@ struct CDirRecord
     return NULL;
   }
 
-  
+  const Byte* FindSuspRecord(unsigned skipSize, Byte id0, Byte id1, unsigned &lenRes) const
+  {
+    unsigned offset = skipSize;
+    return FindNextSuspRecord(offset, id0, id1, lenRes);
+  }
+
+  // Joins the Rock Ridge name, which can be split into several NM records.
+  void ReadSuspName(unsigned skipSize)
+  {
+    SuspName.Free();
+    CByteBuffer name;
+    bool continues = false;
+    unsigned offset = skipSize;
+    unsigned len;
+    for (;;)
+    {
+      const Byte *p = FindNextSuspRecord(offset, 'N', 'M', len);
+      if (!p)
+        break;
+      if (!continues)
+        name.Free();
+      continues = false;
+      // "." and ".." (flags 2 and 4) aren't names of items.
+      if (len < 2 || (p[0] != 0 && p[0] != 1))
+        continue;
+      continues = (p[0] == 1);
+      CByteBuffer joined;
+      joined.Alloc(name.Size() + len - 1);
+      if (name.Size() != 0)
+        memcpy(joined, name, name.Size());
+      memcpy((Byte *)joined + name.Size(), p + 1, len - 1);
+      name = joined;
+    }
+    SuspName = name;
+  }
+
   const Byte* GetNameCur(bool checkSusp, unsigned skipSize, unsigned &nameLenRes) const
   {
-    const Byte *res = NULL;
-    unsigned len = 0;
-    if (checkSusp)
-      res = FindSuspRecord(skipSize, 'N', 'M', len);
-    if (!res || len < 1)
+    const Byte *res;
+    unsigned len;
+    (void)skipSize;
+    if (checkSusp && SuspName.Size() != 0)
     {
-      res = (const Byte *)FileId;
-      len = (unsigned)FileId.Size();
+      res = (const Byte *)SuspName;
+      len = (unsigned)SuspName.Size();
     }
     else
     {
-      res++;
-      len--;
+      res = (const Byte *)FileId;
+      len = (unsigned)FileId.Size();
     }
     unsigned i;
     for (i = 0; i < len; i++)
@@ -149,63 +187,65 @@ struct CDirRecord
   }
 
 
+  // Components are like in libarchive. A component that isn't continued (flag 1)
+  // ends with a separator, also at the end of an SL record, like in Linux.
   bool GetSymLink(unsigned skipSize, AString &link) const
   {
     link.Empty();
-    const Byte *p = NULL;
-    unsigned len = 0;
-    p = FindSuspRecord(skipSize, 'S', 'L', len);
-    if (!p || len < 1)
-      return false;
-
-    if (*p != 0)
-      return false;
-
-    p++;
-    len--;
-
-    while (len != 0)
+    bool continues = false;
+    const char *separator = "";
+    unsigned offset = skipSize;
+    unsigned len;
+    for (;;)
     {
-      if (len < 2)
-        return false;
-      unsigned flags = p[0];
-      unsigned cl = p[1];
-      p += 2;
-      len -= 2;
-
-      if (cl > len)
-        return false;
-
-      bool needSlash = false;
-      
-           if (flags & (1 << 1)) link += "./";
-      else if (flags & (1 << 2)) link += "../";
-      else if (flags & (1 << 3)) link.Add_Slash();
-      else
-        needSlash = true;
-
-      for (unsigned i = 0; i < cl; i++)
-      {
-        const Byte c = p[i];
-        if (c == 0)
-        {
-          break;
-          // return false;
-        }
-        link += (char)c;
-      }
-
-      p += cl;
-      len -= cl;
-
-      if (len == 0)
+      const Byte *p = FindNextSuspRecord(offset, 'S', 'L', len);
+      if (!p)
         break;
-
-      if (needSlash)
-        link.Add_Slash();
+      if (!continues)
+      {
+        link.Empty();
+        separator = "";
+      }
+      continues = false;
+      if (len < 1 || (p[0] != 0 && p[0] != 1))
+        continue;
+      continues = (p[0] == 1);
+      p++;
+      len--;
+      while (len >= 2)
+      {
+        const unsigned flags = p[0];
+        const unsigned cl = p[1];
+        p += 2;
+        len -= 2;
+        if (cl > len)
+          break;
+        link += separator;
+        separator = "/";
+        bool known = true;
+        switch (flags)
+        {
+          case 0:
+          case 1:
+            for (unsigned i = 0; i < cl; i++)
+              link += (char)p[i];
+            if (flags == 1)
+              separator = "";
+            break;
+          case 2: link += '.'; break;
+          case 4: link += ".."; break;
+          case 8: link.Add_Slash(); separator = ""; break;
+          case 0x10: link = "ROOT"; break;
+          case 0x20: link += "hostname"; break;
+          default: known = false; break;
+        }
+        if (!known)
+          break;
+        p += cl;
+        len -= cl;
+      }
     }
-
-    return true;
+    return !link.IsEmpty();
   }
 
   static bool GetLe32Be32(const Byte *p, UInt32 &dest)

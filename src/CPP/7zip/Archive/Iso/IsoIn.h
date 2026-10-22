@@ -265,6 +265,7 @@ class CInArchive
   void ReadVolumeDescriptor(CVolumeDescriptor &d);
 
   void SeekToBlock(UInt32 blockIndex);
+  void ReadSuspContinuation(CDir &d);
   void ResolveChildLink(CDir &d);
   void ReadDir(CDir &d, int level);
   bool IsRelocatedDir(const CDir &d) const;
