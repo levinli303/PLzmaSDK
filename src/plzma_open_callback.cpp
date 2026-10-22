@@ -270,7 +270,8 @@ namespace plzma {
         auto archive = _openedArchives.Back();
         auto item = initialItemAt(index);
         if (item) {
-            Stat stat = GetArchiveItemStat(archive, index);
+            const UInt32 archiveIndex = item->index();
+            Stat stat = GetArchiveItemStat(archive, archiveIndex);
 
             item->setSize(stat.size());
             item->setCreationTime(stat.creation());
@@ -288,22 +289,22 @@ namespace plzma {
             NWindows::NCOM::CPropVariant prop;
     
             prop.Clear();
-            if (archive->GetProperty(index, kpidPackSize, &prop) == S_OK) {
+            if (archive->GetProperty(archiveIndex, kpidPackSize, &prop) == S_OK) {
                 item->setPackSize(PROPVARIANTGetUInt64(prop));
             }
 
             prop.Clear();
-            if (archive->GetProperty(index, kpidEncrypted, &prop) == S_OK) {
+            if (archive->GetProperty(archiveIndex, kpidEncrypted, &prop) == S_OK) {
                 item->setEncrypted(PROPVARIANTGetBool(prop));
             }
             
             prop.Clear();
-            if (archive->GetProperty(index, kpidCRC, &prop) == S_OK) {
+            if (archive->GetProperty(archiveIndex, kpidCRC, &prop) == S_OK) {
                 item->setCrc32(static_cast<uint32_t>(PROPVARIANTGetUInt64(prop)));
             }
             
             prop.Clear();
-            if (archive->GetProperty(index, kpidIsDir, &prop) == S_OK) {
+            if (archive->GetProperty(archiveIndex, kpidIsDir, &prop) == S_OK) {
                 item->setIsDir(PROPVARIANTGetBool(prop));
             }
         }

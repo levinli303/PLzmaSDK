@@ -72,6 +72,20 @@ namespace plzma {
                     stat.setSymbolicLink(String(WideFrom7Zip(prop.bstrVal).Ptr()));
                 }
             }
+        } else {
+            // 7z stores the Unix mode in the high 16 bits of the Windows attributes
+            // when FILE_ATTRIBUTE_UNIX_EXTENSION (0x8000) is set.
+            prop.Clear();
+            if (archive->GetProperty(index, kpidAttrib, &prop) == S_OK && prop.vt == VT_UI4) {
+                const UInt32 attrib = prop.ulVal;
+                if (attrib & 0x8000) {
+                    const UInt32 mode = attrib >> 16;
+                    stat.setPermissions(static_cast<uint16_t>(mode & 0777));
+                    if (S_ISLNK(mode)) {
+                        stat.setIsSymbolicLink(true);
+                    }
+                }
+            }
         }
         return stat;
     }
