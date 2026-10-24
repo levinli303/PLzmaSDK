@@ -459,7 +459,7 @@ namespace plzma {
         const wchar_t * LIBPLZMA_NONNULL wide() const;
         
         
-        /// @return The number of unicode characters in a string.
+        /// @return The number of wide character code units (UTF-16 or UTF-32) in a string.
         plzma_size_t count() const noexcept;
         
         
@@ -522,17 +522,17 @@ namespace plzma {
         static size_t utf8TrailingBytes(const uint8_t c) noexcept;
         
         
-        /// @brief Calculates the length and number of unicode characters of the UTF-8 string limited to the maximum number of unicode characters.
+        /// @brief Calculates the UTF-8 byte length and wide character code unit count, limited to the maximum code unit count.
         /// @param str The UTF-8, null-terminated character string.
-        /// @param maxSize The maximum number of unicode characters.
-        /// @return The pair: <length, number of unicode characters>
+        /// @param maxSize The maximum number of wide character code units.
+        /// @return The pair: <byte length, wide character code unit count>
         static Pair<size_t, size_t> lengthMaxCount(const char * LIBPLZMA_NULLABLE str, const size_t maxSize) noexcept;
         
         
-        /// @brief Calculates the length and number of unicode characters of the UTF-8 string limited to the maximum C-length.
+        /// @brief Calculates the UTF-8 byte length and wide character code unit count, limited to the maximum C-length.
         /// @param str The UTF-8, null-terminated character string.
         /// @param maxLength The maximum length of the C-string.
-        /// @return The pair: <length, number of unicode characters>
+        /// @return The pair: <byte length, wide character code unit count>
         static Pair<size_t, size_t> lengthMaxLength(const char * LIBPLZMA_NULLABLE str, const size_t maxLength) noexcept;
     };
     

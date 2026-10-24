@@ -374,8 +374,29 @@ namespace pathUtils {
             }
         }
         RawHeapMemory pathCopy(sizeof(T) * (len + 1), plzma_erase_zero);
-        const T * cs1 = path;
-        T * s1 = static_cast<T *>(pathCopy);
+        T * copy = static_cast<T *>(pathCopy);
+        ::memcpy(copy, path, sizeof(T) * (len + 1));
+        // Start at an existing ancestor, not a partial UNC or extended-length root.
+        size_t prefixLength = len;
+        while (prefixLength > 0) {
+            if (PS == path[prefixLength - 1] || AS == path[prefixLength - 1]) {
+                const T saved = copy[prefixLength];
+                copy[prefixLength] = 0;
+                bool isDir = false;
+                const bool exists = pathExists<T>(copy, &isDir);
+                copy[prefixLength] = saved;
+                if (exists) {
+                    if (!isDir) {
+                        return false;
+                    }
+                    break;
+                }
+            }
+            prefixLength--;
+        }
+        const T * cs1 = path + prefixLength;
+        T * s1 = copy + prefixLength;
+        ::memset(s1, 0, sizeof(T) * (len + 1 - prefixLength));
         size_t l1 = 0;
         while (*cs1) {
             if (PS == *cs1 || AS == *cs1) {
@@ -499,7 +520,11 @@ namespace pathUtils {
                     if (t == f) { t++; f++; }
                     continue;
                 }
-                if (compsCount == 1 && isScheme<T>(str, t)) {
+                if (compsCount == 1 && (isScheme<T>(str, t)
+#if defined(LIBPLZMA_OS_WINDOWS) || defined(LIBPLZMA_MINGW)
+                    || t == str + 1
+#endif
+                    )) {
                     if (t == f) { t++; f++; }
                     continue;
                 }

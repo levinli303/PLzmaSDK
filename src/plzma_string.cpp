@@ -320,7 +320,11 @@ namespace StringConvertUTF {
             size_t length = 0, count = 0;
             while (*utf8 && count < maxCount) {
                 int bytes = trailingBytesForUTF8[*utf8] + 1;
-                count++;
+                const size_t units = sizeof(wchar_t) == sizeof(UTF16) && bytes == 4 ? 2 : 1;
+                if (units > maxCount - count) {
+                    break;
+                }
+                count += units;
                 do {
                     length++;
                 } while (*++utf8 && --bytes > 0);
@@ -338,7 +342,7 @@ namespace StringConvertUTF {
             size_t length = 0, count = 0;
             while (*utf8 && length < maxLength) {
                 int bytes = trailingBytesForUTF8[*utf8] + 1;
-                count++;
+                count += sizeof(wchar_t) == sizeof(UTF16) && bytes == 4 ? 2 : 1;
                 do {
                     length++;
                 } while (*++utf8 && --bytes > 0);

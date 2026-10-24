@@ -5,6 +5,7 @@
 #include "../../../Common/ComTry.h"
 #include "../../../Common/MyLinux.h"
 #include "../../../Common/StringConvert.h"
+#include "../../../Common/UTFConvert.h"
 
 #include "../../Common/LimitedStreams.h"
 #include "../../Common/ProgressUtils.h"
@@ -21,6 +22,15 @@ using namespace NTime;
 
 namespace NArchive {
 namespace NIso {
+
+static UString DecodeRockRidgeName(const AString &name)
+{
+  UString s;
+  // POSIX names are commonly UTF-8; keep the OEM fallback for legacy images.
+  if (!ConvertUTF8ToUnicode(name, s))
+    s = MultiByteToUnicodeString(name, CP_OEMCP);
+  return s;
+}
 
 static const Byte kProps[] =
 {
@@ -217,7 +227,10 @@ Z7_COM7F_IMF(CHandler::GetProperty(UInt32 index, PROPID propID, PROPVARIANT *val
           if (_archive.IsJoliet())
             item.GetPathU(s);
           else
-            s = MultiByteToUnicodeString(item.GetPath(_archive.IsSusp, _archive.SuspSkipSize), CP_OEMCP);
+          {
+            const AString path = item.GetPath(_archive.IsSusp, _archive.SuspSkipSize);
+            s = _archive.IsSusp ? DecodeRockRidgeName(path) : MultiByteToUnicodeString(path, CP_OEMCP);
+          }
 
           if (s.Len() >= 2 && s[s.Len() - 2] == ';' && s.Back() == '1')
             s.DeleteFrom(s.Len() - 2);
@@ -241,7 +254,7 @@ Z7_COM7F_IMF(CHandler::GetProperty(UInt32 index, PROPID propID, PROPVARIANT *val
               AString s8;
               if (item.GetSymLink(_archive.SuspSkipSize, s8))
               {
-                UString s = MultiByteToUnicodeString(s8, CP_OEMCP);
+                UString s = DecodeRockRidgeName(s8);
                 prop = s;
               }
             }
